@@ -175,6 +175,29 @@ function extrairValor(linha) {
   return partes.slice(1).join(":").trim();
 }
 
+function gerarSemanaAtual() {
+  const hoje = new Date();
+
+  const inicio = new Date(hoje);
+  const diaSemana = inicio.getDay();
+  const diferencaParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  inicio.setDate(hoje.getDate() + diferencaParaSegunda);
+
+  const fim = new Date(inicio);
+  fim.setDate(inicio.getDate() + 6);
+
+  const formatar = (data) => {
+    return data.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  };
+
+  return `${formatar(inicio)} a ${formatar(fim)}`;
+}
+
 function reconhecerSub(texto) {
   const textoNormalizado = normalizarTexto(texto);
 
@@ -422,16 +445,18 @@ lerFichaBtn.addEventListener("click", () => {
     criarLinhaMembro(membro);
   });
 
+  const semanaAtual = gerarSemanaAtual();
+
   if (subReconhecido) {
     mostrarMensagem(
       subMessage,
-      `${membros.length} membro(s) encontrado(s). Sub reconhecido: ${subReconhecido.valor}. Confira os dados antes de enviar.`,
+      `${membros.length} membro(s) encontrado(s). Sub reconhecido: ${subReconhecido.valor}. Semana registrada automaticamente: ${semanaAtual}. Confira os dados antes de enviar.`,
       "success"
     );
   } else {
     mostrarMensagem(
       subMessage,
-      `${membros.length} membro(s) encontrado(s), mas não consegui reconhecer o sub. Selecione o sub manualmente antes de enviar.`,
+      `${membros.length} membro(s) encontrado(s), mas não consegui reconhecer o sub. Selecione o sub manualmente antes de enviar. Semana registrada automaticamente: ${semanaAtual}.`,
       "error"
     );
   }
@@ -441,9 +466,8 @@ subForm.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const sub = document.getElementById("subNome").value;
-  const codigoAdm = document.getElementById("codigoAdm").value.trim();
-  const semana = document.getElementById("semana").value.trim();
   const membros = coletarMembros();
+  const semana = gerarSemanaAtual();
 
   if (!sub) {
     mostrarMensagem(
@@ -478,14 +502,13 @@ subForm.addEventListener("submit", async (evento) => {
   try {
     await registrarPontuacaoSub({
       sub,
-      codigoAdm,
       semana,
       membros
     });
 
     mostrarMensagem(
       subMessage,
-      "Pontuação enviada com sucesso!",
+      `Pontuação enviada com sucesso! Semana registrada: ${semana}.`,
       "success"
     );
 
