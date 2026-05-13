@@ -17,55 +17,128 @@ const subMessage = document.getElementById("subMessage");
 const mapaSubs = [
   {
     valor: "A-1 Chama Eterna",
-    chaves: ["a-1", "a1", "chama eterna"]
+    chaves: [
+      "a-1",
+      "a1",
+      "chama eterna"
+    ]
   },
   {
     valor: "A-2 Página Livre",
-    chaves: ["a-2", "a2", "pagina livre", "página livre"]
+    chaves: [
+      "a-2",
+      "a2",
+      "pagina livre",
+      "página livre"
+    ]
   },
   {
-    valor: "A-3",
-    chaves: ["a-3", "a3"]
+    valor: "A-3 Entre Nós",
+    chaves: [
+      "a-3",
+      "a3",
+      "entre nos",
+      "entre nós"
+    ]
   },
   {
-    valor: "A-4",
-    chaves: ["a-4", "a4"]
+    valor: "A-4 Sussurros da Aurora",
+    chaves: [
+      "a-4",
+      "a4",
+      "sussurros da aurora"
+    ]
   },
   {
-    valor: "A-5",
-    chaves: ["a-5", "a5"]
+    valor: "A-5 Crepúsculo",
+    chaves: [
+      "a-5",
+      "a5",
+      "crepusculo",
+      "crepúsculo"
+    ]
   },
   {
     valor: "A-6 Trono Profano",
-    chaves: ["a-6", "a6", "trono profano"]
+    chaves: [
+      "a-6",
+      "a6",
+      "trono profano"
+    ]
   },
   {
-    valor: "A-7",
-    chaves: ["a-7", "a7"]
+    valor: "A-7 NO MOMENTO FECHADO",
+    chaves: [
+      "a-7",
+      "a7",
+      "no momento fechado"
+    ]
   },
   {
-    valor: "A-8",
-    chaves: ["a-8", "a8"]
+    valor: "A-8 Ordem do Eclipse",
+    chaves: [
+      "a-8",
+      "a8",
+      "ordem do eclipse"
+    ]
   },
   {
-    valor: "A-9",
-    chaves: ["a-9", "a9"]
+    valor: "A-9 Cicatrizes Literárias",
+    chaves: [
+      "a-9",
+      "a9",
+      "cicatrizes literarias",
+      "cicatrizes literárias"
+    ]
   },
   {
-    valor: "A-10",
-    chaves: ["a-10", "a10"]
+    valor: "A-10 Quasar",
+    chaves: [
+      "a-10",
+      "a10",
+      "quasar"
+    ]
   },
   {
-    valor: "A-11",
-    chaves: ["a-11", "a11"]
+    valor: "A-11 NO MOMENTO FECHADO",
+    chaves: [
+      "a-11",
+      "a11",
+      "no momento fechado"
+    ]
   },
   {
-    valor: "A-12",
-    chaves: ["a-12", "a12"]
+    valor: "A-12 Estrela Polar",
+    chaves: [
+      "a-12",
+      "a12",
+      "estrela polar"
+    ]
   },
   {
-    valor: "A-13",
-    chaves: ["a-13", "a13"]
+    valor: "A-13 Luar Profano",
+    chaves: [
+      "a-13",
+      "a13",
+      "luar profano"
+    ]
+  },
+  {
+    valor: "A-14 Fragmentos da Noite",
+    chaves: [
+      "a-14",
+      "a14",
+      "fragmentos da noite"
+    ]
+  },
+  {
+    valor: "A-15 Véu Escarlate",
+    chaves: [
+      "a-15",
+      "a15",
+      "veu escarlate",
+      "véu escarlate"
+    ]
   }
 ];
 
@@ -92,13 +165,31 @@ function extrairValor(linha) {
 function reconhecerSub(texto) {
   const textoNormalizado = normalizarTexto(texto);
 
+  const linhaInicial = texto
+    .split(/\r?\n/)
+    .slice(0, 12)
+    .join(" ");
+
+  const linhaInicialNormalizada = normalizarTexto(linhaInicial);
+
   for (const sub of mapaSubs) {
-    const encontrou = sub.chaves.some((chave) => {
+    const encontrouNaLinhaInicial = sub.chaves.some((chave) => {
+      const chaveNormalizada = normalizarTexto(chave);
+      return linhaInicialNormalizada.includes(chaveNormalizada);
+    });
+
+    if (encontrouNaLinhaInicial) {
+      return sub.valor;
+    }
+  }
+
+  for (const sub of mapaSubs) {
+    const encontrouNoTexto = sub.chaves.some((chave) => {
       const chaveNormalizada = normalizarTexto(chave);
       return textoNormalizado.includes(chaveNormalizada);
     });
 
-    if (encontrou) {
+    if (encontrouNoTexto) {
       return sub.valor;
     }
   }
@@ -119,6 +210,15 @@ function preencherSubAutomaticamente(texto) {
   return subReconhecido;
 }
 
+function escaparHtml(valor) {
+  return String(valor)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function criarLinhaMembro(membro = {}) {
   const linha = document.createElement("div");
 
@@ -130,7 +230,7 @@ function criarLinhaMembro(membro = {}) {
       class="member-name" 
       placeholder="Nome do membro" 
       required 
-      value="${membro.nome || ""}"
+      value="${escaparHtml(membro.nome || "")}"
     />
 
     <input 
@@ -138,7 +238,7 @@ function criarLinhaMembro(membro = {}) {
       class="member-user" 
       placeholder="@user" 
       required 
-      value="${membro.user || ""}"
+      value="${escaparHtml(membro.user || "")}"
     />
 
     <input 
