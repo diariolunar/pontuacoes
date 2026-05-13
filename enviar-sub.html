@@ -1,81 +1,59 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<form id="subForm" class="form">
+  <div class="field">
+    <label for="subNome">Nome do sub</label>
+    <select id="subNome" required>
+      <option value="">Selecione o sub</option>
+      <option value="A-1 Chama Eterna">A-1 Chama Eterna</option>
+      <option value="A-2 Página Livre">A-2 Página Livre</option>
+      <option value="A-3">A-3</option>
+      <option value="A-4">A-4</option>
+      <option value="A-5">A-5</option>
+      <option value="A-6 Trono Profano">A-6 Trono Profano</option>
+      <option value="A-7">A-7</option>
+      <option value="A-8">A-8</option>
+      <option value="A-9">A-9</option>
+      <option value="A-10">A-10</option>
+      <option value="A-11">A-11</option>
+      <option value="A-12">A-12</option>
+      <option value="A-13">A-13</option>
+    </select>
+  </div>
 
-  <title>Enviar Pontuação de Sub | Central Lunar</title>
+  <div class="field">
+    <label for="codigoAdm">Código do ADM</label>
+    <input type="text" id="codigoAdm" required placeholder="Ex: LUNAR-A6" />
+  </div>
 
-  <link rel="stylesheet" href="./css/style.css" />
-</head>
-<body>
-  <div id="header"></div>
+  <div class="field">
+    <label for="semana">Semana de referência</label>
+    <input type="text" id="semana" required placeholder="Ex: 13/05 a 19/05" />
+  </div>
 
-  <main class="page">
-    <section class="form-container">
-      <span class="tag">Envio dos ADMs</span>
+  <div class="field">
+    <label for="fichaTexto">Cole aqui a ficha completa do sub</label>
+    <textarea
+      id="fichaTexto"
+      placeholder="Cole aqui a ficha enviada no WhatsApp..."
+    ></textarea>
+  </div>
 
-      <h1>Enviar pontuação do sub</h1>
+  <button type="button" id="lerFichaBtn" class="btn secondary full">
+    Ler ficha automaticamente
+  </button>
 
-      <p>
-        Preencha o nome do sub e adicione os membros com suas respectivas pontuações.
-        O sistema registrará a pontuação no sub informado e também somará no ranking geral.
-      </p>
+  <div class="members-box">
+    <div class="members-header">
+      <h2>Membros encontrados</h2>
 
-      <form id="subForm" class="form">
-        <div class="field">
-          <label for="subNome">Nome do sub</label>
-          <select id="subNome" required>
-            <option value="">Selecione o sub</option>
-            <option value="A-1 Chama Eterna">A-1 Chama Eterna</option>
-            <option value="A-2 Página Livre">A-2 Página Livre</option>
-            <option value="A-3">A-3</option>
-            <option value="A-4">A-4</option>
-            <option value="A-5">A-5</option>
-            <option value="A-6 Trono Profano">A-6 Trono Profano</option>
-            <option value="A-7">A-7</option>
-            <option value="A-8">A-8</option>
-            <option value="A-9">A-9</option>
-            <option value="A-10">A-10</option>
-            <option value="A-11">A-11</option>
-            <option value="A-12">A-12</option>
-            <option value="A-13">A-13</option>
-          </select>
-        </div>
+      <button type="button" id="addMemberBtn" class="btn secondary small">
+        + Adicionar membro
+      </button>
+    </div>
 
-        <div class="field">
-          <label for="codigoAdm">Código do ADM</label>
-          <input type="text" id="codigoAdm" required placeholder="Ex: LUNAR-A1" />
-        </div>
+    <div id="membersList"></div>
+  </div>
 
-        <div class="field">
-          <label for="semana">Semana de referência</label>
-          <input type="text" id="semana" required placeholder="Ex: 13/05 a 19/05" />
-        </div>
-
-        <div class="members-box">
-          <div class="members-header">
-            <h2>Membros pontuados</h2>
-            <button type="button" id="addMemberBtn" class="btn secondary small">
-              + Adicionar membro
-            </button>
-          </div>
-
-          <div id="membersList"></div>
-        </div>
-
-        <button type="submit" class="btn primary full">
-          Enviar pontuação
-        </button>
-      </form>
-
-      <p id="subMessage" class="message"></p>
-    </section>
-  </main>
-
-  <div id="footer"></div>
-
-  <script type="module" src="./js/core/components.js"></script>
-  <script type="module" src="./js/pages/enviar-sub.js"></script>
-</body>
-</html>
+  <button type="submit" class="btn primary full">
+    Enviar pontuação
+  </button>
+</form>
