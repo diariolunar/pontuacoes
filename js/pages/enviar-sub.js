@@ -14,11 +14,71 @@ const addMemberBtn = document.getElementById("addMemberBtn");
 const lerFichaBtn = document.getElementById("lerFichaBtn");
 const subMessage = document.getElementById("subMessage");
 
-function limparTextoEspecial(texto) {
+const mapaSubs = [
+  {
+    valor: "A-1 Chama Eterna",
+    chaves: ["a-1", "a1", "chama eterna"]
+  },
+  {
+    valor: "A-2 Página Livre",
+    chaves: ["a-2", "a2", "pagina livre", "página livre"]
+  },
+  {
+    valor: "A-3",
+    chaves: ["a-3", "a3"]
+  },
+  {
+    valor: "A-4",
+    chaves: ["a-4", "a4"]
+  },
+  {
+    valor: "A-5",
+    chaves: ["a-5", "a5"]
+  },
+  {
+    valor: "A-6 Trono Profano",
+    chaves: ["a-6", "a6", "trono profano"]
+  },
+  {
+    valor: "A-7",
+    chaves: ["a-7", "a7"]
+  },
+  {
+    valor: "A-8",
+    chaves: ["a-8", "a8"]
+  },
+  {
+    valor: "A-9",
+    chaves: ["a-9", "a9"]
+  },
+  {
+    valor: "A-10",
+    chaves: ["a-10", "a10"]
+  },
+  {
+    valor: "A-11",
+    chaves: ["a-11", "a11"]
+  },
+  {
+    valor: "A-12",
+    chaves: ["a-12", "a12"]
+  },
+  {
+    valor: "A-13",
+    chaves: ["a-13", "a13"]
+  }
+];
+
+function normalizarTexto(texto) {
   return texto
-    .replace(/[𝐀-𝐙𝐚-𝐳𝟎-𝟗]/g, (char) => char)
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .normalize("NFKC")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[—–]/g, "-")
+    .replace(/[^\w\s@\-:]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function extrairValor(linha) {
@@ -27,6 +87,36 @@ function extrairValor(linha) {
   if (partes.length < 2) return "";
 
   return partes.slice(1).join(":").trim();
+}
+
+function reconhecerSub(texto) {
+  const textoNormalizado = normalizarTexto(texto);
+
+  for (const sub of mapaSubs) {
+    const encontrou = sub.chaves.some((chave) => {
+      const chaveNormalizada = normalizarTexto(chave);
+      return textoNormalizado.includes(chaveNormalizada);
+    });
+
+    if (encontrou) {
+      return sub.valor;
+    }
+  }
+
+  return "";
+}
+
+function preencherSubAutomaticamente(texto) {
+  const subReconhecido = reconhecerSub(texto);
+  const campoSub = document.getElementById("subNome");
+
+  if (!subReconhecido || !campoSub) {
+    return "";
+  }
+
+  campoSub.value = subReconhecido;
+
+  return subReconhecido;
 }
 
 function criarLinhaMembro(membro = {}) {
@@ -98,9 +188,13 @@ function separarBlocosDeMembros(texto) {
   let blocoAtual = [];
 
   for (const linhaOriginal of linhas) {
-    const linha = linhaOriginal.trim();
+    const linhaNormalizada = normalizarTexto(linhaOriginal);
 
-    if (linha.includes("𝐍𝐨𝐦𝐞:") || linha.toLowerCase().includes("nome:")) {
+    const ehLinhaDeNome =
+      linhaNormalizada.includes("nome:") ||
+      linhaNormalizada.includes("nome :");
+
+    if (ehLinhaDeNome) {
       if (blocoAtual.length > 0) {
         blocos.push(blocoAtual.join("\n"));
       }
@@ -129,18 +223,18 @@ function extrairMembroDoBloco(bloco) {
   let pontos = 0;
 
   for (const linhaOriginal of linhas) {
-    const linha = linhaOriginal.trim();
+    const linhaNormalizada = normalizarTexto(linhaOriginal);
 
-    if (linha.includes("𝐍𝐨𝐦𝐞:") || linha.toLowerCase().includes("nome:")) {
-      nome = extrairValor(linha);
+    if (linhaNormalizada.includes("nome:") || linhaNormalizada.includes("nome :")) {
+      nome = extrairValor(linhaOriginal);
     }
 
-    if (linha.includes("𝐔𝐬𝐞𝐫:") || linha.toLowerCase().includes("user:")) {
-      user = normalizarUser(extrairValor(linha));
+    if (linhaNormalizada.includes("user:") || linhaNormalizada.includes("user :")) {
+      user = normalizarUser(extrairValor(linhaOriginal));
     }
 
-    if (linha.includes("𝐏𝐨𝐧𝐭𝐨𝐬:") || linha.toLowerCase().includes("pontos:")) {
-      pontos = converterPontuacao(extrairValor(linha));
+    if (linhaNormalizada.includes("pontos:") || linhaNormalizada.includes("pontos :")) {
+      pontos = converterPontuacao(extrairValor(linhaOriginal));
     }
   }
 
@@ -180,6 +274,7 @@ lerFichaBtn.addEventListener("click", () => {
     return;
   }
 
+  const subReconhecido = preencherSubAutomaticamente(fichaTexto);
   const membros = lerFichaCompleta(fichaTexto);
 
   if (membros.length === 0) {
@@ -198,11 +293,19 @@ lerFichaBtn.addEventListener("click", () => {
     criarLinhaMembro(membro);
   });
 
-  mostrarMensagem(
-    subMessage,
-    `${membros.length} membro(s) encontrado(s). Confira os dados antes de enviar.`,
-    "success"
-  );
+  if (subReconhecido) {
+    mostrarMensagem(
+      subMessage,
+      `${membros.length} membro(s) encontrado(s). Sub reconhecido: ${subReconhecido}. Confira os dados antes de enviar.`,
+      "success"
+    );
+  } else {
+    mostrarMensagem(
+      subMessage,
+      `${membros.length} membro(s) encontrado(s), mas não consegui reconhecer o sub. Selecione o sub manualmente antes de enviar.`,
+      "error"
+    );
+  }
 });
 
 subForm.addEventListener("submit", async (evento) => {
@@ -212,6 +315,16 @@ subForm.addEventListener("submit", async (evento) => {
   const codigoAdm = document.getElementById("codigoAdm").value.trim();
   const semana = document.getElementById("semana").value.trim();
   const membros = coletarMembros();
+
+  if (!sub) {
+    mostrarMensagem(
+      subMessage,
+      "Selecione o sub antes de enviar a pontuação.",
+      "error"
+    );
+
+    return;
+  }
 
   if (membros.length === 0) {
     mostrarMensagem(
