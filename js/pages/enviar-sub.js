@@ -17,6 +17,7 @@ const subMessage = document.getElementById("subMessage");
 const mapaSubs = [
   {
     valor: "A-1 Chama Eterna",
+    desativado: false,
     chaves: [
       "a-1",
       "a1",
@@ -25,6 +26,7 @@ const mapaSubs = [
   },
   {
     valor: "A-2 Página Livre",
+    desativado: false,
     chaves: [
       "a-2",
       "a2",
@@ -34,6 +36,7 @@ const mapaSubs = [
   },
   {
     valor: "A-3 Entre Nós",
+    desativado: false,
     chaves: [
       "a-3",
       "a3",
@@ -43,6 +46,7 @@ const mapaSubs = [
   },
   {
     valor: "A-4 Sussurros da Aurora",
+    desativado: false,
     chaves: [
       "a-4",
       "a4",
@@ -51,6 +55,7 @@ const mapaSubs = [
   },
   {
     valor: "A-5 Crepúsculo",
+    desativado: false,
     chaves: [
       "a-5",
       "a5",
@@ -60,6 +65,7 @@ const mapaSubs = [
   },
   {
     valor: "A-6 Trono Profano",
+    desativado: false,
     chaves: [
       "a-6",
       "a6",
@@ -67,15 +73,16 @@ const mapaSubs = [
     ]
   },
   {
-    valor: "A-7 NO MOMENTO FECHADO",
+    valor: "A-7 DESATIVADO",
+    desativado: true,
     chaves: [
       "a-7",
-      "a7",
-      "no momento fechado"
+      "a7"
     ]
   },
   {
     valor: "A-8 Ordem do Eclipse",
+    desativado: false,
     chaves: [
       "a-8",
       "a8",
@@ -84,6 +91,7 @@ const mapaSubs = [
   },
   {
     valor: "A-9 Cicatrizes Literárias",
+    desativado: false,
     chaves: [
       "a-9",
       "a9",
@@ -93,6 +101,7 @@ const mapaSubs = [
   },
   {
     valor: "A-10 Quasar",
+    desativado: false,
     chaves: [
       "a-10",
       "a10",
@@ -100,15 +109,16 @@ const mapaSubs = [
     ]
   },
   {
-    valor: "A-11 NO MOMENTO FECHADO",
+    valor: "A-11 DESATIVADO",
+    desativado: true,
     chaves: [
       "a-11",
-      "a11",
-      "no momento fechado"
+      "a11"
     ]
   },
   {
     valor: "A-12 Estrela Polar",
+    desativado: false,
     chaves: [
       "a-12",
       "a12",
@@ -117,6 +127,7 @@ const mapaSubs = [
   },
   {
     valor: "A-13 Luar Profano",
+    desativado: false,
     chaves: [
       "a-13",
       "a13",
@@ -125,6 +136,7 @@ const mapaSubs = [
   },
   {
     valor: "A-14 Fragmentos da Noite",
+    desativado: false,
     chaves: [
       "a-14",
       "a14",
@@ -133,6 +145,7 @@ const mapaSubs = [
   },
   {
     valor: "A-15 Véu Escarlate",
+    desativado: false,
     chaves: [
       "a-15",
       "a15",
@@ -179,7 +192,7 @@ function reconhecerSub(texto) {
     });
 
     if (encontrouNaLinhaInicial) {
-      return sub.valor;
+      return sub;
     }
   }
 
@@ -190,11 +203,11 @@ function reconhecerSub(texto) {
     });
 
     if (encontrouNoTexto) {
-      return sub.valor;
+      return sub;
     }
   }
 
-  return "";
+  return null;
 }
 
 function preencherSubAutomaticamente(texto) {
@@ -202,10 +215,14 @@ function preencherSubAutomaticamente(texto) {
   const campoSub = document.getElementById("subNome");
 
   if (!subReconhecido || !campoSub) {
-    return "";
+    return null;
   }
 
-  campoSub.value = subReconhecido;
+  if (subReconhecido.desativado) {
+    return subReconhecido;
+  }
+
+  campoSub.value = subReconhecido.valor;
 
   return subReconhecido;
 }
@@ -377,6 +394,18 @@ lerFichaBtn.addEventListener("click", () => {
   const subReconhecido = preencherSubAutomaticamente(fichaTexto);
   const membros = lerFichaCompleta(fichaTexto);
 
+  if (subReconhecido?.desativado) {
+    membersList.innerHTML = "";
+
+    mostrarMensagem(
+      subMessage,
+      `${subReconhecido.valor.replace("DESATIVADO", "").trim()} está desativado no momento. O envio dessa ficha não está liberado.`,
+      "error"
+    );
+
+    return;
+  }
+
   if (membros.length === 0) {
     mostrarMensagem(
       subMessage,
@@ -396,7 +425,7 @@ lerFichaBtn.addEventListener("click", () => {
   if (subReconhecido) {
     mostrarMensagem(
       subMessage,
-      `${membros.length} membro(s) encontrado(s). Sub reconhecido: ${subReconhecido}. Confira os dados antes de enviar.`,
+      `${membros.length} membro(s) encontrado(s). Sub reconhecido: ${subReconhecido.valor}. Confira os dados antes de enviar.`,
       "success"
     );
   } else {
@@ -420,6 +449,16 @@ subForm.addEventListener("submit", async (evento) => {
     mostrarMensagem(
       subMessage,
       "Selecione o sub antes de enviar a pontuação.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (sub.includes("DESATIVADO")) {
+    mostrarMensagem(
+      subMessage,
+      "Esse sub está desativado no momento. O envio de pontuação não está liberado.",
       "error"
     );
 
