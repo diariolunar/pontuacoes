@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Login | Central de Pontuação Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page center-page">
+    <section class="auth-card">
+      <span class="tag">Área da Leh</span>
+
+      <h1>Entrar no painel</h1>
+
+      <p>
+        Acesse com email e senha para administrar as pontuações semanais.
+      </p>
+
+      <form id="loginForm" class="form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="Digite o email" />
+        </div>
+
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" required placeholder="Digite a senha" />
+        </div>
+
+        <button type="submit" class="btn primary full">Entrar</button>
+      </form>
+
+      <p id="loginMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/login.js"></script>
+</body>
+</html>
