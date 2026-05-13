@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Painel | Central de Pontuação Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel administrativo</span>
+        <h1>Resumo da semana</h1>
+        <p>
+          Aqui a Leh poderá acompanhar os envios, conferir pontuações
+          e gerar o ranking geral.
+        </p>
+      </div>
+
+      <div class="cards-grid">
+        <article class="info-card">
+          <h2>Subs</h2>
+          <p id="totalSubs">0 envios</p>
+        </article>
+
+        <article class="info-card">
+          <h2>Leitura Lunar</h2>
+          <p>Em breve</p>
+        </article>
+
+        <article class="info-card">
+          <h2>Chuva de Estrelas</h2>
+          <p>Em breve</p>
+        </article>
+
+        <article class="info-card">
+          <h2>Ranking Geral</h2>
+          <p id="totalMembros">0 membros</p>
+        </article>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Últimos envios dos subs</h2>
+        </div>
+
+        <div id="ultimosEnvios" class="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/admin.js"></script>
+</body>
+</html>
