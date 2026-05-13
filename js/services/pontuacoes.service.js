@@ -25,13 +25,11 @@ import {
 
 export async function registrarPontuacaoSub({
   sub,
-  codigoAdm,
   semana,
   membros
 }) {
   const envioRef = await addDoc(collection(db, "enviosSubs"), {
     sub,
-    codigoAdm,
     semana,
     totalMembros: membros.length,
     criadoEm: serverTimestamp()
