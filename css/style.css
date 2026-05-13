@@ -88,8 +88,8 @@ button {
 }
 
 .logo-mark {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background:
     radial-gradient(circle at 30% 30%, var(--pink), transparent 35%),
@@ -98,6 +98,16 @@ button {
   display: grid;
   place-items: center;
   box-shadow: var(--glow);
+  overflow: hidden;
+  border: 1px solid rgba(255, 216, 77, 0.28);
+}
+
+.logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 50%;
 }
 
 .header-nav {
@@ -264,8 +274,9 @@ button {
 }
 
 .field textarea {
-  min-height: 120px;
+  min-height: 180px;
   resize: vertical;
+  line-height: 1.55;
 }
 
 .field input::placeholder,
@@ -349,6 +360,7 @@ button {
 .message {
   margin-top: 18px;
   font-weight: 800;
+  line-height: 1.5;
 }
 
 .message.success {
@@ -399,6 +411,7 @@ button {
   background: rgba(7, 0, 15, 0.72);
   color: var(--text);
   outline: none;
+  min-height: 48px;
 }
 
 .member-row input:focus {
@@ -529,13 +542,14 @@ button {
   padding: 15px;
   background: rgba(7, 0, 15, 0.42);
   color: var(--muted);
+  line-height: 1.5;
 }
 
 .list-item strong {
   color: var(--gold);
 }
 
-/* TABELAS MOBILE */
+/* TABELAS */
 
 .table-wrap {
   width: 100%;
@@ -582,7 +596,62 @@ td {
   text-align: center;
 }
 
-/* DESKTOP */
+/* CELULAR PEQUENO */
+
+@media (max-width: 420px) {
+  .site-header {
+    min-height: 74px;
+    padding: 14px;
+  }
+
+  .logo {
+    font-size: 14px;
+  }
+
+  .logo-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .page {
+    width: min(100% - 22px, 1120px);
+    padding: 24px 0;
+  }
+
+  .hero {
+    border-radius: 22px;
+    padding: 28px 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(38px, 15vw, 58px);
+  }
+
+  .hero p {
+    font-size: 15px;
+  }
+
+  .form-container,
+  .auth-card,
+  .panel,
+  .info-card {
+    border-radius: 20px;
+  }
+
+  .form-container {
+    padding: 20px;
+  }
+
+  .field textarea {
+    min-height: 220px;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+/* TABLET */
 
 @media (min-width: 680px) {
   .page {
@@ -622,6 +691,8 @@ td {
     justify-content: space-between;
   }
 }
+
+/* DESKTOP */
 
 @media (min-width: 960px) {
   .site-header {
