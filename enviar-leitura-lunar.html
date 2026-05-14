@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Enviar Leitura Lunar | Central Lunar</title>
+  <title>Teste Leitura Lunar</title>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
@@ -13,13 +13,12 @@
 
   <main class="page">
     <section class="form-container">
-      <span class="tag">Envio de participação</span>
+      <span class="tag">Teste</span>
 
-      <h1>Enviar Leitura Lunar</h1>
+      <h1>Teste da Leitura Lunar</h1>
 
       <p>
-        Cole a lista de membros que fizeram a Leitura Lunar. Cada membro receberá
-        automaticamente 50 pontos na pontuação da semana.
+        Esta página é só para testar se o JavaScript está carregando.
       </p>
 
       <form id="leituraForm" class="form">
@@ -27,14 +26,7 @@
           <label for="listaTexto">Cole aqui a lista de membros</label>
           <textarea
             id="listaTexto"
-            placeholder="Ex:
-Mayke Arrais - RKymae
-Leh - userdaleh
-Anna - userdaanna
-
-Ou:
-Nome: Mayke Arrais
-User: RKymae"
+            placeholder="Mayke Arrais - RKymae"
           ></textarea>
         </div>
 
@@ -64,6 +56,25 @@ User: RKymae"
   </main>
 
   <div id="footer"></div>
+
+  <script>
+    alert("O HTML novo da Leitura Lunar foi carregado.");
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const leituraMessage = document.getElementById("leituraMessage");
+      const lerListaBtn = document.getElementById("lerListaBtn");
+
+      leituraMessage.textContent = "O JavaScript dentro do HTML funcionou.";
+      leituraMessage.className = "message success";
+
+      lerListaBtn.addEventListener("click", function () {
+        alert("O botão Ler Lista funcionou pelo script interno.");
+
+        leituraMessage.textContent = "Botão funcionando. O problema está no arquivo JS externo ou no caminho dele.";
+        leituraMessage.className = "message success";
+      });
+    });
+  </script>
 
   <script type="module" src="./js/core/components.js"></script>
   <script type="module" src="./js/pages/enviar-leitura-lunar.js"></script>
