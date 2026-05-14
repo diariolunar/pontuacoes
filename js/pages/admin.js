@@ -1,6 +1,7 @@
 import {
   protegerPagina,
-  configurarBotaoLogout
+  configurarBotaoLogout,
+  configurarMenuPorPermissao
 } from "../core/auth.js";
 
 import {
@@ -17,11 +18,13 @@ const ultimosEnvios = document.getElementById("ultimosEnvios");
 
 async function carregarDashboard() {
   try {
+    await configurarMenuPorPermissao();
+
     const enviosSubs = await listarUltimosEnviosSubs();
-    const ranking = await listarPontuacaoGeral();
+    const pontuacoes = await listarPontuacaoGeral();
 
     totalSubs.textContent = `${enviosSubs.length} envios`;
-    totalMembros.textContent = `${ranking.length} membros`;
+    totalMembros.textContent = `${pontuacoes.length} membros`;
 
     if (enviosSubs.length === 0) {
       ultimosEnvios.innerHTML = `
