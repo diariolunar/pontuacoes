@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Membros | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel da Leh</span>
+
+        <h1>Membros</h1>
+
+        <p>
+          Consulte, edite e organize os membros cadastrados automaticamente pelas fichas dos subs.
+        </p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Buscar membro</h2>
+        </div>
+
+        <div class="toolbar">
+          <div class="field">
+            <label for="buscaMembro">Nome ou user</label>
+            <input
+              type="text"
+              id="buscaMembro"
+              placeholder="Ex: Mayke, RKymae ou @RKymae"
+            />
+          </div>
+
+          <button type="button" id="limparBuscaBtn" class="btn secondary">
+            Limpar busca
+          </button>
+        </div>
+
+        <div class="summary-line">
+          <span id="totalMembrosTexto">Membros encontrados: 0</span>
+          <span>Editar com cuidado para não duplicar users</span>
+        </div>
+      </div>
+
+      <div id="membrosLista" class="members-admin-list"></div>
+
+      <p id="membrosMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/membros.js"></script>
+</body>
+</html>
