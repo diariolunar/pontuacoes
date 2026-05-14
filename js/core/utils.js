@@ -27,7 +27,20 @@ export function criarIdSeguro(texto) {
     .replaceAll("@", "")
     .replaceAll(".", "-")
     .replaceAll("/", "-")
-    .replaceAll(" ", "-");
+    .replaceAll(" ", "-")
+    .replaceAll(":", "-")
+    .replaceAll("ç", "c")
+    .replaceAll("ã", "a")
+    .replaceAll("á", "a")
+    .replaceAll("à", "a")
+    .replaceAll("â", "a")
+    .replaceAll("é", "e")
+    .replaceAll("ê", "e")
+    .replaceAll("í", "i")
+    .replaceAll("ó", "o")
+    .replaceAll("ô", "o")
+    .replaceAll("õ", "o")
+    .replaceAll("ú", "u");
 }
 
 export function mostrarMensagem(elemento, texto, tipo = "success") {
@@ -35,4 +48,36 @@ export function mostrarMensagem(elemento, texto, tipo = "success") {
 
   elemento.textContent = texto;
   elemento.className = `message ${tipo}`;
+}
+
+export function gerarSemanaAtual() {
+  const hoje = new Date();
+
+  const inicio = new Date(hoje);
+  const diaSemana = inicio.getDay();
+  const diferencaParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  inicio.setDate(hoje.getDate() + diferencaParaSegunda);
+
+  const fim = new Date(inicio);
+  fim.setDate(inicio.getDate() + 6);
+
+  const formatar = (data) => {
+    return data.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    });
+  };
+
+  return `${formatar(inicio)} a ${formatar(fim)}`;
+}
+
+export function escaparHtml(valor) {
+  return String(valor)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
