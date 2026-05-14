@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Subs | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel da Leh</span>
+
+        <h1>Subs</h1>
+
+        <p>
+          Confira quais subs já enviaram ficha na semana atual e veja os detalhes
+          de membros e pontos de cada um.
+        </p>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalSubsTexto">Subs enviados: 0</span>
+      </div>
+
+      <div id="subsLista" class="subs-grid"></div>
+
+      <p id="subsMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/subs.js"></script>
+</body>
+</html>
