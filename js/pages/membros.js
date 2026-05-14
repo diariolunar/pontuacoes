@@ -27,79 +27,6 @@ const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 
 let membrosCarregados = [];
 
-const subsDisponiveis = [
-  {
-    valor: "A-1 Chama Eterna",
-    texto: "A-1 - Chama Eterna"
-  },
-  {
-    valor: "A-2 Página Livre",
-    texto: "A-2 - Página Livre"
-  },
-  {
-    valor: "A-3 Entre Nós",
-    texto: "A-3 - Entre Nós"
-  },
-  {
-    valor: "A-4 Sussurros da Aurora",
-    texto: "A-4 - Sussurros da Aurora"
-  },
-  {
-    valor: "A-5 Crepúsculo",
-    texto: "A-5 - Crepúsculo"
-  },
-  {
-    valor: "A-6 Trono Profano",
-    texto: "A-6 - Trono Profano"
-  },
-  {
-    valor: "A-8 Ordem do Eclipse",
-    texto: "A-8 - Ordem do Eclipse"
-  },
-  {
-    valor: "A-9 Cicatrizes Literárias",
-    texto: "A-9 - Cicatrizes Literárias"
-  },
-  {
-    valor: "A-10 Quasar",
-    texto: "A-10 - Quasar"
-  },
-  {
-    valor: "A-12 Estrela Polar",
-    texto: "A-12 - Estrela Polar"
-  },
-  {
-    valor: "A-13 Luar Profano",
-    texto: "A-13 - Luar Profano"
-  },
-  {
-    valor: "A-14 Fragmentos da Noite",
-    texto: "A-14 - Fragmentos da Noite"
-  },
-  {
-    valor: "A-15 Véu Escarlate",
-    texto: "A-15 - Véu Escarlate"
-  }
-];
-
-function criarOptionsSub(subAtual = "") {
-  const primeiraOpcao = `<option value="">Sem sub definido</option>`;
-
-  const opcoes = subsDisponiveis
-    .map((sub) => {
-      const selecionado = sub.valor === subAtual ? "selected" : "";
-
-      return `
-        <option value="${escaparHtml(sub.valor)}" ${selecionado}>
-          ${escaparHtml(sub.texto)}
-        </option>
-      `;
-    })
-    .join("");
-
-  return primeiraOpcao + opcoes;
-}
-
 function criarOptionsStatus(statusAtual = "ativo") {
   const statusSeguro = statusAtual || "ativo";
 
@@ -146,13 +73,6 @@ function criarCardMembro(membro) {
             value="${escaparHtml(membro.user || "")}"
             required
           />
-        </div>
-
-        <div class="field">
-          <label>Sub</label>
-          <select class="edit-sub">
-            ${criarOptionsSub(membro.sub || "")}
-          </select>
         </div>
 
         <div class="field">
@@ -226,14 +146,12 @@ function obterDadosDoCard(card) {
   const idAtual = card.dataset.memberId;
   const nome = card.querySelector(".edit-nome").value.trim();
   const user = card.querySelector(".edit-user").value.trim();
-  const sub = card.querySelector(".edit-sub").value.trim();
   const status = card.querySelector(".edit-status").value;
 
   return {
     idAtual,
     nome,
     user,
-    sub,
     status
   };
 }
