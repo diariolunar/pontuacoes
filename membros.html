@@ -21,8 +21,40 @@
         <h1>Membros</h1>
 
         <p>
-          Consulte, edite e organize os membros cadastrados automaticamente pelas fichas enviadas.
+          Consulte, cadastre, edite e exclua membros do sistema.
         </p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Cadastrar novo membro</h2>
+        </div>
+
+        <form id="novoMembroForm" class="member-create-form">
+          <div class="field">
+            <label for="novoNome">Nome</label>
+            <input
+              type="text"
+              id="novoNome"
+              placeholder="Ex: Mayke Arrais"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="novoUser">User</label>
+            <input
+              type="text"
+              id="novoUser"
+              placeholder="Ex: @RKymae"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn primary">
+            Cadastrar membro
+          </button>
+        </form>
       </div>
 
       <div class="panel">
@@ -47,11 +79,11 @@
 
         <div class="summary-line">
           <span id="totalMembrosTexto">Membros encontrados: 0</span>
-          <span>Editar com cuidado para não duplicar users</span>
+          <span>Excluir membro não apaga o histórico de pontuação</span>
         </div>
       </div>
 
-      <div id="membrosLista" class="members-admin-list"></div>
+      <div id="membrosLista" class="members-admin-list list-mode"></div>
 
       <p id="membrosMessage" class="message"></p>
     </section>
