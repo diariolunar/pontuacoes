@@ -18,7 +18,7 @@ import {
   normalizarUser
 } from "../core/utils.js";
 
-export async function buscarOuCriarMembro({ nome, user, sub = "" }) {
+export async function buscarOuCriarMembro({ nome, user }) {
   const userNormalizado = normalizarUser(user);
   const membroId = criarIdSeguro(userNormalizado);
 
@@ -35,7 +35,6 @@ export async function buscarOuCriarMembro({ nome, user, sub = "" }) {
   const novoMembro = {
     nome,
     user: userNormalizado,
-    sub,
     status: "ativo",
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp()
@@ -83,7 +82,6 @@ export async function atualizarMembro({
   idAtual,
   nome,
   user,
-  sub,
   status
 }) {
   const userNormalizado = normalizarUser(user);
@@ -92,7 +90,6 @@ export async function atualizarMembro({
   const dadosAtualizados = {
     nome: nome.trim(),
     user: userNormalizado,
-    sub: sub.trim(),
     status,
     atualizadoEm: serverTimestamp()
   };
@@ -121,14 +118,16 @@ export async function atualizarMembro({
     throw new Error("Membro original não encontrado.");
   }
 
+  const membroAntigoRef = doc(db, "membros", idAtual);
+
   await setDoc(novoMembroRef, {
-    ...membroAtual,
-    ...dadosAtualizados,
+    nome: dadosAtualizados.nome,
+    user: dadosAtualizados.user,
+    status: dadosAtualizados.status,
     criadoEm: membroAtual.criadoEm || serverTimestamp(),
     atualizadoEm: serverTimestamp()
   });
 
-  const membroAntigoRef = doc(db, "membros", idAtual);
   await deleteDoc(membroAntigoRef);
 
   return {
