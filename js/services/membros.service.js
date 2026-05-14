@@ -33,9 +33,37 @@ export async function buscarOuCriarMembro({ nome, user }) {
   }
 
   const novoMembro = {
-    nome,
+    nome: nome.trim(),
     user: userNormalizado,
-    status: "ativo",
+    criadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp()
+  };
+
+  await setDoc(membroRef, novoMembro);
+
+  return {
+    id: membroId,
+    ...novoMembro
+  };
+}
+
+export async function cadastrarMembro({
+  nome,
+  user
+}) {
+  const userNormalizado = normalizarUser(user);
+  const membroId = criarIdSeguro(userNormalizado);
+
+  const membroRef = doc(db, "membros", membroId);
+  const membroSnap = await getDoc(membroRef);
+
+  if (membroSnap.exists()) {
+    throw new Error("Já existe um membro cadastrado com esse user.");
+  }
+
+  const novoMembro = {
+    nome: nome.trim(),
+    user: userNormalizado,
     criadoEm: serverTimestamp(),
     atualizadoEm: serverTimestamp()
   };
@@ -81,8 +109,7 @@ export async function buscarMembroPorId(id) {
 export async function atualizarMembro({
   idAtual,
   nome,
-  user,
-  status
+  user
 }) {
   const userNormalizado = normalizarUser(user);
   const novoId = criarIdSeguro(userNormalizado);
@@ -90,7 +117,6 @@ export async function atualizarMembro({
   const dadosAtualizados = {
     nome: nome.trim(),
     user: userNormalizado,
-    status,
     atualizadoEm: serverTimestamp()
   };
 
@@ -123,7 +149,6 @@ export async function atualizarMembro({
   await setDoc(novoMembroRef, {
     nome: dadosAtualizados.nome,
     user: dadosAtualizados.user,
-    status: dadosAtualizados.status,
     criadoEm: membroAtual.criadoEm || serverTimestamp(),
     atualizadoEm: serverTimestamp()
   });
@@ -136,14 +161,11 @@ export async function atualizarMembro({
   };
 }
 
-export async function alterarStatusMembro({
-  id,
-  status
-}) {
-  const membroRef = doc(db, "membros", id);
+export async function excluirMembro(id) {
+  if (!id) {
+    throw new Error("ID do membro não informado.");
+  }
 
-  await updateDoc(membroRef, {
-    status,
-    atualizadoEm: serverTimestamp()
-  });
+  const membroRef = doc(db, "membros", id);
+  await deleteDoc(membroRef);
 }
