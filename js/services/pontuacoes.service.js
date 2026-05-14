@@ -41,8 +41,7 @@ export async function registrarPontuacaoSub({
 
     await buscarOuCriarMembro({
       nome: membro.nome,
-      user: userNormalizado,
-      sub
+      user: userNormalizado
     });
 
     await addDoc(collection(db, "pontuacoesSubs"), {
