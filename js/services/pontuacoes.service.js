@@ -67,6 +67,84 @@ export async function registrarPontuacaoSub({
   return envioRef.id;
 }
 
+export async function registrarPontuacaoFixa({
+  semana,
+  membros,
+  categoria,
+  pontos,
+  colecao,
+  origem
+}) {
+  const envioRef = await addDoc(collection(db, `envios_${colecao}`), {
+    semana,
+    categoria,
+    origem,
+    pontosPorMembro: Number(pontos || 0),
+    totalMembros: membros.length,
+    criadoEm: serverTimestamp()
+  });
+
+  for (const membro of membros) {
+    const userNormalizado = normalizarUser(membro.user);
+    const pontosNumericos = Number(pontos || 0);
+
+    await buscarOuCriarMembro({
+      nome: membro.nome,
+      user: userNormalizado
+    });
+
+    await addDoc(collection(db, colecao), {
+      envioId: envioRef.id,
+      semana,
+      categoria,
+      origem,
+      nome: membro.nome,
+      user: userNormalizado,
+      pontos: pontosNumericos,
+      criadoEm: serverTimestamp()
+    });
+
+    await somarPontuacaoGeral({
+      semana,
+      nome: membro.nome,
+      user: userNormalizado,
+      categoria,
+      pontos: pontosNumericos,
+      origem
+    });
+  }
+
+  return envioRef.id;
+}
+
+export async function registrarLeituraLunar({
+  semana,
+  membros
+}) {
+  return await registrarPontuacaoFixa({
+    semana,
+    membros,
+    categoria: "leituraLunar",
+    pontos: 50,
+    colecao: "leituraLunar",
+    origem: "Leitura Lunar"
+  });
+}
+
+export async function registrarChuvaEstrelas({
+  semana,
+  membros
+}) {
+  return await registrarPontuacaoFixa({
+    semana,
+    membros,
+    categoria: "chuvaEstrelas",
+    pontos: 100,
+    colecao: "chuvaEstrelas",
+    origem: "Chuva de Estrelas"
+  });
+}
+
 export async function somarPontuacaoGeral({
   semana,
   nome,
@@ -189,4 +267,27 @@ export async function listarPontuacaoGeral(semana = "") {
   }
 
   return pontuacoes;
+}
+
+export async function listarPontuacoesCategoria({
+  colecao,
+  semana = ""
+}) {
+  const consulta = query(
+    collection(db, colecao),
+    orderBy("criadoEm", "desc")
+  );
+
+  const snapshot = await getDocs(consulta);
+
+  let registros = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  if (semana) {
+    registros = registros.filter((registro) => registro.semana === semana);
+  }
+
+  return registros;
 }
