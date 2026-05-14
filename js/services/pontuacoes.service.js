@@ -94,6 +94,8 @@ export async function somarPontuacaoGeral({
     });
   } else {
     await updateDoc(rankingRef, {
+      nome,
+      user: userNormalizado,
       [campoCategoria]: increment(pontos),
       totalGeral: increment(pontos),
       atualizadoEm: serverTimestamp()
@@ -125,7 +127,51 @@ export async function listarUltimosEnviosSubs() {
   }));
 }
 
-export async function listarPontuacaoGeral() {
+export async function listarEnviosSubs(semana = "") {
+  const consulta = query(
+    collection(db, "enviosSubs"),
+    orderBy("criadoEm", "desc")
+  );
+
+  const snapshot = await getDocs(consulta);
+
+  let envios = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  if (semana) {
+    envios = envios.filter((envio) => envio.semana === semana);
+  }
+
+  return envios;
+}
+
+export async function listarPontuacoesSubs(semana = "", sub = "") {
+  const consulta = query(
+    collection(db, "pontuacoesSubs"),
+    orderBy("criadoEm", "desc")
+  );
+
+  const snapshot = await getDocs(consulta);
+
+  let pontuacoes = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  if (semana) {
+    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.semana === semana);
+  }
+
+  if (sub) {
+    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === sub);
+  }
+
+  return pontuacoes;
+}
+
+export async function listarPontuacaoGeral(semana = "") {
   const consulta = query(
     collection(db, "pontuacaoGeral"),
     orderBy("totalGeral", "desc")
@@ -133,8 +179,14 @@ export async function listarPontuacaoGeral() {
 
   const snapshot = await getDocs(consulta);
 
-  return snapshot.docs.map((documento) => ({
+  let pontuacoes = snapshot.docs.map((documento) => ({
     id: documento.id,
     ...documento.data()
   }));
+
+  if (semana) {
+    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.semana === semana);
+  }
+
+  return pontuacoes;
 }
