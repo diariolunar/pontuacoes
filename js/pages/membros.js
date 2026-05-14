@@ -1,6 +1,7 @@
 import {
-  alterarStatusMembro,
   atualizarMembro,
+  cadastrarMembro,
+  excluirMembro,
   listarMembros
 } from "../services/membros.service.js";
 
@@ -19,6 +20,10 @@ import {
 protegerPagina();
 configurarBotaoLogout();
 
+const novoMembroForm = document.getElementById("novoMembroForm");
+const novoNome = document.getElementById("novoNome");
+const novoUser = document.getElementById("novoUser");
+
 const buscaMembro = document.getElementById("buscaMembro");
 const limparBuscaBtn = document.getElementById("limparBuscaBtn");
 const membrosLista = document.getElementById("membrosLista");
@@ -27,34 +32,17 @@ const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 
 let membrosCarregados = [];
 
-function criarOptionsStatus(statusAtual = "ativo") {
-  const statusSeguro = statusAtual || "ativo";
-
-  return `
-    <option value="ativo" ${statusSeguro === "ativo" ? "selected" : ""}>Ativo</option>
-    <option value="inativo" ${statusSeguro === "inativo" ? "selected" : ""}>Inativo</option>
-  `;
-}
-
 function criarCardMembro(membro) {
-  const status = membro.status || "ativo";
-  const statusClasse = status === "ativo" ? "success" : "muted";
-  const statusTexto = status === "ativo" ? "Ativo" : "Inativo";
-
   return `
-    <article class="member-admin-card" data-member-id="${escaparHtml(membro.id)}">
+    <article class="member-admin-card member-list-card" data-member-id="${escaparHtml(membro.id)}">
       <div class="member-admin-header">
         <div>
           <h2>${escaparHtml(membro.nome || "Sem nome")}</h2>
           <p>${escaparHtml(membro.user || "Sem user")}</p>
         </div>
-
-        <span class="status-pill ${statusClasse}">
-          ${statusTexto}
-        </span>
       </div>
 
-      <form class="member-edit-form">
+      <form class="member-edit-form member-list-form">
         <div class="field">
           <label>Nome</label>
           <input
@@ -75,20 +63,13 @@ function criarCardMembro(membro) {
           />
         </div>
 
-        <div class="field">
-          <label>Status</label>
-          <select class="edit-status">
-            ${criarOptionsStatus(status)}
-          </select>
-        </div>
-
         <div class="member-admin-actions">
           <button type="submit" class="btn primary">
-            Salvar alterações
+            Salvar
           </button>
 
-          <button type="button" class="btn secondary toggle-status-btn">
-            ${status === "ativo" ? "Inativar" : "Ativar"}
+          <button type="button" class="btn danger delete-member-btn">
+            Excluir
           </button>
         </div>
       </form>
@@ -119,7 +100,7 @@ function renderizarMembros(lista) {
     .join("");
 
   configurarFormsDeEdicao();
-  configurarBotoesStatus();
+  configurarBotoesExcluir();
 }
 
 function filtrarMembros() {
@@ -146,13 +127,11 @@ function obterDadosDoCard(card) {
   const idAtual = card.dataset.memberId;
   const nome = card.querySelector(".edit-nome").value.trim();
   const user = card.querySelector(".edit-user").value.trim();
-  const status = card.querySelector(".edit-status").value;
 
   return {
     idAtual,
     nome,
-    user,
-    status
+    user
   };
 }
 
@@ -167,6 +146,10 @@ function atualizarMembroNaLista(idAntigo, membroAtualizado) {
       ...membroAtualizado
     };
   });
+}
+
+function removerMembroDaLista(id) {
+  membrosCarregados = membrosCarregados.filter((membro) => membro.id !== id);
 }
 
 function configurarFormsDeEdicao() {
@@ -215,44 +198,41 @@ function configurarFormsDeEdicao() {
         );
       } finally {
         botao.disabled = false;
-        botao.textContent = "Salvar alterações";
+        botao.textContent = "Salvar";
       }
     });
   });
 }
 
-function configurarBotoesStatus() {
-  const botoes = document.querySelectorAll(".toggle-status-btn");
+function configurarBotoesExcluir() {
+  const botoes = document.querySelectorAll(".delete-member-btn");
 
   botoes.forEach((botao) => {
     botao.addEventListener("click", async () => {
       const card = botao.closest(".member-admin-card");
       const id = card.dataset.memberId;
-      const selectStatus = card.querySelector(".edit-status");
-      const statusAtual = selectStatus.value;
-      const novoStatus = statusAtual === "ativo" ? "inativo" : "ativo";
+      const nome = card.querySelector(".edit-nome").value.trim();
+      const user = card.querySelector(".edit-user").value.trim();
+
+      const confirmar = window.confirm(
+        `Tem certeza que deseja excluir o cadastro de ${nome} (${user})?\n\nIsso não apaga o histórico de pontuação já registrado.`
+      );
+
+      if (!confirmar) {
+        return;
+      }
 
       try {
         botao.disabled = true;
-        botao.textContent = "Alterando...";
+        botao.textContent = "Excluindo...";
 
-        await alterarStatusMembro({
-          id,
-          status: novoStatus
-        });
+        await excluirMembro(id);
 
-        membrosCarregados = membrosCarregados.map((membro) => {
-          if (membro.id !== id) return membro;
-
-          return {
-            ...membro,
-            status: novoStatus
-          };
-        });
+        removerMembroDaLista(id);
 
         mostrarMensagem(
           membrosMessage,
-          `Membro ${novoStatus === "ativo" ? "ativado" : "inativado"} com sucesso.`,
+          "Membro excluído com sucesso.",
           "success"
         );
 
@@ -262,11 +242,12 @@ function configurarBotoesStatus() {
 
         mostrarMensagem(
           membrosMessage,
-          `Erro ao alterar status: ${erro.message || "tente novamente."}`,
+          `Erro ao excluir membro: ${erro.message || "tente novamente."}`,
           "error"
         );
       } finally {
         botao.disabled = false;
+        botao.textContent = "Excluir";
       }
     });
   });
@@ -289,6 +270,64 @@ async function carregarMembros() {
     );
   }
 }
+
+novoMembroForm.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const nome = novoNome.value.trim();
+  const user = novoUser.value.trim();
+  const botao = novoMembroForm.querySelector('button[type="submit"]');
+
+  if (!nome || !user) {
+    mostrarMensagem(
+      membrosMessage,
+      "Preencha nome e user para cadastrar.",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+    botao.disabled = true;
+    botao.textContent = "Cadastrando...";
+
+    const novoMembro = await cadastrarMembro({
+      nome,
+      user
+    });
+
+    membrosCarregados.push(novoMembro);
+
+    membrosCarregados.sort((a, b) => {
+      const nomeA = String(a.nome || "").toLowerCase();
+      const nomeB = String(b.nome || "").toLowerCase();
+
+      return nomeA.localeCompare(nomeB);
+    });
+
+    novoMembroForm.reset();
+
+    mostrarMensagem(
+      membrosMessage,
+      "Membro cadastrado com sucesso.",
+      "success"
+    );
+
+    filtrarMembros();
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      membrosMessage,
+      `Erro ao cadastrar membro: ${erro.message || "tente novamente."}`,
+      "error"
+    );
+  } finally {
+    botao.disabled = false;
+    botao.textContent = "Cadastrar membro";
+  }
+});
 
 buscaMembro.addEventListener("input", () => {
   filtrarMembros();
