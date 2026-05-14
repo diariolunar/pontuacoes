@@ -1,14 +1,3 @@
-import {
-  registrarLeituraLunar
-} from "../services/pontuacoes.service.js";
-
-import {
-  escaparHtml,
-  gerarSemanaAtual,
-  mostrarMensagem,
-  normalizarUser
-} from "../core/utils.js";
-
 document.addEventListener("DOMContentLoaded", () => {
   const leituraForm = document.getElementById("leituraForm");
   const listaTexto = document.getElementById("listaTexto");
@@ -18,11 +7,62 @@ document.addEventListener("DOMContentLoaded", () => {
   const leituraMessage = document.getElementById("leituraMessage");
 
   if (!leituraForm || !listaTexto || !membersList || !addMemberBtn || !lerListaBtn || !leituraMessage) {
-    console.error("Erro: algum elemento da página de Leitura Lunar não foi encontrado.");
+    alert("Erro: a página de Leitura Lunar não encontrou todos os elementos HTML.");
     return;
   }
 
   const submitBtn = leituraForm.querySelector('button[type="submit"]');
+
+  function mostrarMensagem(elemento, texto, tipo = "success") {
+    if (!elemento) return;
+
+    elemento.textContent = texto;
+    elemento.className = `message ${tipo}`;
+  }
+
+  function escaparHtml(valor) {
+    return String(valor)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function normalizarUser(user) {
+    if (!user) return "";
+
+    const userLimpo = String(user).trim().toLowerCase();
+
+    if (userLimpo.startsWith("@")) {
+      return userLimpo;
+    }
+
+    return `@${userLimpo}`;
+  }
+
+  function gerarSemanaAtual() {
+    const hoje = new Date();
+
+    const inicio = new Date(hoje);
+    const diaSemana = inicio.getDay();
+    const diferencaParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+    inicio.setDate(hoje.getDate() + diferencaParaSegunda);
+
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+
+    const formatar = (data) => {
+      return data.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    };
+
+    return `${formatar(inicio)} a ${formatar(fim)}`;
+  }
 
   function normalizarTexto(texto) {
     return String(texto || "")
@@ -276,7 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "success"
       );
 
-      await registrarLeituraLunar({
+      const modulo = await import("../services/pontuacoes.service.js");
+
+      await modulo.registrarLeituraLunar({
         semana,
         membros
       });
@@ -302,4 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.textContent = "Enviar Leitura Lunar";
     }
   });
+
+  console.log("Página de Leitura Lunar carregada corretamente.");
 });
