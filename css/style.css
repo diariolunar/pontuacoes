@@ -520,6 +520,7 @@ button {
 
 .panel {
   padding: 20px;
+  margin-bottom: 18px;
 }
 
 .panel-header {
@@ -552,14 +553,15 @@ button {
   color: var(--gold);
 }
 
-.toolbar {
+.toolbar,
+.member-create-form {
   display: grid;
   gap: 14px;
   margin-top: 24px;
 }
 
 .summary-line {
-  margin: 22px 0;
+  margin: 22px 0 0;
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -709,30 +711,35 @@ button {
 
 .members-admin-list {
   display: grid;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   margin-top: 22px;
 }
 
 .member-admin-card {
   border: 1px solid var(--border-purple);
   border-radius: 22px;
-  padding: 18px;
+  padding: 16px;
   background:
     radial-gradient(circle at top left, rgba(155, 53, 217, 0.16), transparent 35%),
     rgba(7, 0, 15, 0.46);
   box-shadow: var(--shadow);
 }
 
+.member-list-card {
+  display: grid;
+  gap: 14px;
+}
+
 .member-admin-header {
   display: grid;
   gap: 12px;
-  margin-bottom: 18px;
 }
 
 .member-admin-header h2 {
   margin: 0 0 6px;
   color: var(--white);
-  font-size: 21px;
+  font-size: 20px;
 }
 
 .member-admin-header p {
@@ -746,10 +753,13 @@ button {
   gap: 14px;
 }
 
+.member-list-form {
+  align-items: end;
+}
+
 .member-admin-actions {
   display: grid;
   gap: 10px;
-  margin-top: 4px;
 }
 
 .table-wrap {
@@ -891,6 +901,11 @@ td {
     align-items: end;
   }
 
+  .member-create-form {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+
   .summary-line {
     display: flex;
     flex-wrap: wrap;
@@ -915,18 +930,17 @@ td {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .member-admin-header {
-    grid-template-columns: 1fr auto;
+  .member-list-card {
+    grid-template-columns: 240px 1fr;
     align-items: center;
   }
 
-  .member-edit-form {
-    grid-template-columns: repeat(2, 1fr);
+  .member-list-form {
+    grid-template-columns: 1fr 1fr auto;
   }
 
   .member-admin-actions {
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto auto;
   }
 }
 
@@ -978,6 +992,6 @@ td {
   }
 
   .members-admin-list {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
