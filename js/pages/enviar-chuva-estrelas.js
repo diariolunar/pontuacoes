@@ -1,0 +1,286 @@
+import {
+  registrarChuvaEstrelas
+} from "../services/pontuacoes.service.js";
+
+import {
+  escaparHtml,
+  gerarSemanaAtual,
+  mostrarMensagem,
+  normalizarUser
+} from "../core/utils.js";
+
+const chuvaForm = document.getElementById("chuvaForm");
+const listaTexto = document.getElementById("listaTexto");
+const membersList = document.getElementById("membersList");
+const addMemberBtn = document.getElementById("addMemberBtn");
+const lerListaBtn = document.getElementById("lerListaBtn");
+const chuvaMessage = document.getElementById("chuvaMessage");
+const submitBtn = chuvaForm.querySelector('button[type="submit"]');
+
+function normalizarTexto(texto) {
+  return texto
+    .normalize("NFKC")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function extrairValor(linha) {
+  const partes = linha.split(":");
+
+  if (partes.length < 2) return "";
+
+  return partes.slice(1).join(":").trim();
+}
+
+function criarLinhaMembro(membro = {}) {
+  const linha = document.createElement("div");
+
+  linha.className = "member-row";
+
+  linha.innerHTML = `
+    <input 
+      type="text" 
+      class="member-name" 
+      placeholder="Nome do membro" 
+      required 
+      value="${escaparHtml(membro.nome || "")}"
+    />
+
+    <input 
+      type="text" 
+      class="member-user" 
+      placeholder="@user" 
+      required 
+      value="${escaparHtml(membro.user || "")}"
+    />
+
+    <input 
+      type="number" 
+      class="member-points" 
+      value="100"
+      readonly
+    />
+
+    <button type="button" class="remove-member">×</button>
+  `;
+
+  const removeBtn = linha.querySelector(".remove-member");
+
+  removeBtn.addEventListener("click", () => {
+    linha.remove();
+  });
+
+  membersList.appendChild(linha);
+}
+
+function coletarMembros() {
+  const linhas = document.querySelectorAll(".member-row");
+
+  return Array.from(linhas)
+    .map((linha) => {
+      const nome = linha.querySelector(".member-name").value.trim();
+      const user = normalizarUser(linha.querySelector(".member-user").value);
+
+      return {
+        nome,
+        user
+      };
+    })
+    .filter((membro) => membro.nome && membro.user);
+}
+
+function lerFormatoNomeUser(texto) {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((linha) => linha.trim())
+    .filter(Boolean);
+
+  const membros = [];
+  let nomeAtual = "";
+
+  for (const linha of linhas) {
+    const linhaNormalizada = normalizarTexto(linha);
+
+    if (linhaNormalizada.startsWith("nome:")) {
+      nomeAtual = extrairValor(linha);
+      continue;
+    }
+
+    if (linhaNormalizada.startsWith("user:")) {
+      const user = extrairValor(linha);
+
+      if (nomeAtual && user) {
+        membros.push({
+          nome: nomeAtual,
+          user: normalizarUser(user)
+        });
+
+        nomeAtual = "";
+      }
+
+      continue;
+    }
+  }
+
+  return membros;
+}
+
+function lerFormatoLinhaSimples(texto) {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((linha) => linha.trim())
+    .filter(Boolean);
+
+  const membros = [];
+
+  for (const linha of linhas) {
+    const linhaNormalizada = normalizarTexto(linha);
+
+    if (
+      linhaNormalizada.startsWith("nome:") ||
+      linhaNormalizada.startsWith("user:") ||
+      linhaNormalizada.includes("leitura lunar") ||
+      linhaNormalizada.includes("chuva de estrelas")
+    ) {
+      continue;
+    }
+
+    const partes = linha
+      .split(/\s+-\s+|\s+—\s+|\s+\|\s+|;/)
+      .map((parte) => parte.trim())
+      .filter(Boolean);
+
+    if (partes.length >= 2) {
+      membros.push({
+        nome: partes[0],
+        user: normalizarUser(partes[1])
+      });
+    }
+  }
+
+  return membros;
+}
+
+function removerDuplicados(membros) {
+  const mapa = new Map();
+
+  for (const membro of membros) {
+    const user = normalizarUser(membro.user);
+
+    if (!mapa.has(user)) {
+      mapa.set(user, {
+        nome: membro.nome,
+        user
+      });
+    }
+  }
+
+  return Array.from(mapa.values());
+}
+
+function lerListaCompleta(texto) {
+  const porNomeUser = lerFormatoNomeUser(texto);
+  const porLinhaSimples = lerFormatoLinhaSimples(texto);
+
+  return removerDuplicados([
+    ...porNomeUser,
+    ...porLinhaSimples
+  ]);
+}
+
+addMemberBtn.addEventListener("click", () => {
+  criarLinhaMembro();
+});
+
+lerListaBtn.addEventListener("click", () => {
+  const texto = listaTexto.value.trim();
+
+  if (!texto) {
+    mostrarMensagem(
+      chuvaMessage,
+      "Cole a lista antes de tentar ler automaticamente.",
+      "error"
+    );
+
+    return;
+  }
+
+  const membros = lerListaCompleta(texto);
+
+  if (membros.length === 0) {
+    mostrarMensagem(
+      chuvaMessage,
+      "Não consegui encontrar membros. Use o formato Nome - User ou Nome:/User:.",
+      "error"
+    );
+
+    return;
+  }
+
+  membersList.innerHTML = "";
+
+  membros.forEach((membro) => {
+    criarLinhaMembro(membro);
+  });
+
+  mostrarMensagem(
+    chuvaMessage,
+    `${membros.length} membro(s) encontrado(s). Cada um receberá 100 pontos.`,
+    "success"
+  );
+});
+
+chuvaForm.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const membros = coletarMembros();
+  const semana = gerarSemanaAtual();
+
+  if (membros.length === 0) {
+    mostrarMensagem(
+      chuvaMessage,
+      "Adicione pelo menos um membro antes de enviar.",
+      "error"
+    );
+
+    return;
+  }
+
+  try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Enviando...";
+
+    mostrarMensagem(
+      chuvaMessage,
+      "Enviando Chuva de Estrelas para o Firebase...",
+      "success"
+    );
+
+    await registrarChuvaEstrelas({
+      semana,
+      membros
+    });
+
+    mostrarMensagem(
+      chuvaMessage,
+      `Chuva de Estrelas enviada com sucesso! Semana registrada: ${semana}.`,
+      "success"
+    );
+
+    chuvaForm.reset();
+    membersList.innerHTML = "";
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      chuvaMessage,
+      `Erro ao enviar Chuva de Estrelas: ${erro.message || "tente novamente."}`,
+      "error"
+    );
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Enviar Chuva de Estrelas";
+  }
+});
