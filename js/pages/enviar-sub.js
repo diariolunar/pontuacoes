@@ -4,6 +4,8 @@ import {
 
 import {
   converterPontuacao,
+  escaparHtml,
+  gerarSemanaAtual,
   mostrarMensagem,
   normalizarUser
 } from "../core/utils.js";
@@ -13,145 +15,83 @@ const membersList = document.getElementById("membersList");
 const addMemberBtn = document.getElementById("addMemberBtn");
 const lerFichaBtn = document.getElementById("lerFichaBtn");
 const subMessage = document.getElementById("subMessage");
+const submitBtn = subForm.querySelector('button[type="submit"]');
 
 const mapaSubs = [
   {
     valor: "A-1 Chama Eterna",
     desativado: false,
-    chaves: [
-      "a-1",
-      "a1",
-      "chama eterna"
-    ]
+    chaves: ["a-1", "a1", "chama eterna"]
   },
   {
     valor: "A-2 Página Livre",
     desativado: false,
-    chaves: [
-      "a-2",
-      "a2",
-      "pagina livre",
-      "página livre"
-    ]
+    chaves: ["a-2", "a2", "pagina livre", "página livre"]
   },
   {
     valor: "A-3 Entre Nós",
     desativado: false,
-    chaves: [
-      "a-3",
-      "a3",
-      "entre nos",
-      "entre nós"
-    ]
+    chaves: ["a-3", "a3", "entre nos", "entre nós"]
   },
   {
     valor: "A-4 Sussurros da Aurora",
     desativado: false,
-    chaves: [
-      "a-4",
-      "a4",
-      "sussurros da aurora"
-    ]
+    chaves: ["a-4", "a4", "sussurros da aurora"]
   },
   {
     valor: "A-5 Crepúsculo",
     desativado: false,
-    chaves: [
-      "a-5",
-      "a5",
-      "crepusculo",
-      "crepúsculo"
-    ]
+    chaves: ["a-5", "a5", "crepusculo", "crepúsculo"]
   },
   {
     valor: "A-6 Trono Profano",
     desativado: false,
-    chaves: [
-      "a-6",
-      "a6",
-      "trono profano"
-    ]
+    chaves: ["a-6", "a6", "trono profano"]
   },
   {
     valor: "A-7 DESATIVADO",
     desativado: true,
-    chaves: [
-      "a-7",
-      "a7"
-    ]
+    chaves: ["a-7", "a7"]
   },
   {
     valor: "A-8 Ordem do Eclipse",
     desativado: false,
-    chaves: [
-      "a-8",
-      "a8",
-      "ordem do eclipse"
-    ]
+    chaves: ["a-8", "a8", "ordem do eclipse"]
   },
   {
     valor: "A-9 Cicatrizes Literárias",
     desativado: false,
-    chaves: [
-      "a-9",
-      "a9",
-      "cicatrizes literarias",
-      "cicatrizes literárias"
-    ]
+    chaves: ["a-9", "a9", "cicatrizes literarias", "cicatrizes literárias"]
   },
   {
     valor: "A-10 Quasar",
     desativado: false,
-    chaves: [
-      "a-10",
-      "a10",
-      "quasar"
-    ]
+    chaves: ["a-10", "a10", "quasar"]
   },
   {
     valor: "A-11 DESATIVADO",
     desativado: true,
-    chaves: [
-      "a-11",
-      "a11"
-    ]
+    chaves: ["a-11", "a11"]
   },
   {
     valor: "A-12 Estrela Polar",
     desativado: false,
-    chaves: [
-      "a-12",
-      "a12",
-      "estrela polar"
-    ]
+    chaves: ["a-12", "a12", "estrela polar"]
   },
   {
     valor: "A-13 Luar Profano",
     desativado: false,
-    chaves: [
-      "a-13",
-      "a13",
-      "luar profano"
-    ]
+    chaves: ["a-13", "a13", "luar profano"]
   },
   {
     valor: "A-14 Fragmentos da Noite",
     desativado: false,
-    chaves: [
-      "a-14",
-      "a14",
-      "fragmentos da noite"
-    ]
+    chaves: ["a-14", "a14", "fragmentos da noite"]
   },
   {
     valor: "A-15 Véu Escarlate",
     desativado: false,
-    chaves: [
-      "a-15",
-      "a15",
-      "veu escarlate",
-      "véu escarlate"
-    ]
+    chaves: ["a-15", "a15", "veu escarlate", "véu escarlate"]
   }
 ];
 
@@ -173,29 +113,6 @@ function extrairValor(linha) {
   if (partes.length < 2) return "";
 
   return partes.slice(1).join(":").trim();
-}
-
-function gerarSemanaAtual() {
-  const hoje = new Date();
-
-  const inicio = new Date(hoje);
-  const diaSemana = inicio.getDay();
-  const diferencaParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
-
-  inicio.setDate(hoje.getDate() + diferencaParaSegunda);
-
-  const fim = new Date(inicio);
-  fim.setDate(inicio.getDate() + 6);
-
-  const formatar = (data) => {
-    return data.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    });
-  };
-
-  return `${formatar(inicio)} a ${formatar(fim)}`;
 }
 
 function reconhecerSub(texto) {
@@ -248,15 +165,6 @@ function preencherSubAutomaticamente(texto) {
   campoSub.value = subReconhecido.valor;
 
   return subReconhecido;
-}
-
-function escaparHtml(valor) {
-  return String(valor)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 function criarLinhaMembro(membro = {}) {
@@ -500,6 +408,15 @@ subForm.addEventListener("submit", async (evento) => {
   }
 
   try {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Enviando...";
+
+    mostrarMensagem(
+      subMessage,
+      "Enviando pontuação para o Firebase...",
+      "success"
+    );
+
     await registrarPontuacaoSub({
       sub,
       semana,
@@ -515,12 +432,15 @@ subForm.addEventListener("submit", async (evento) => {
     subForm.reset();
     membersList.innerHTML = "";
   } catch (erro) {
-    console.error(erro);
+    console.error("Erro ao enviar pontuação:", erro);
 
     mostrarMensagem(
       subMessage,
-      "Erro ao enviar pontuação. Tente novamente.",
+      `Erro ao enviar pontuação: ${erro.message || "verifique o Firebase e as regras do Firestore."}`,
       "error"
     );
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Enviar pontuação";
   }
 });
