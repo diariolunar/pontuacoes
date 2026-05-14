@@ -1,14 +1,3 @@
-import {
-  registrarChuvaEstrelas
-} from "../services/pontuacoes.service.js";
-
-import {
-  escaparHtml,
-  gerarSemanaAtual,
-  mostrarMensagem,
-  normalizarUser
-} from "../core/utils.js";
-
 document.addEventListener("DOMContentLoaded", () => {
   const chuvaForm = document.getElementById("chuvaForm");
   const listaTexto = document.getElementById("listaTexto");
@@ -18,11 +7,62 @@ document.addEventListener("DOMContentLoaded", () => {
   const chuvaMessage = document.getElementById("chuvaMessage");
 
   if (!chuvaForm || !listaTexto || !membersList || !addMemberBtn || !lerListaBtn || !chuvaMessage) {
-    console.error("Erro: algum elemento da página de Chuva de Estrelas não foi encontrado.");
+    alert("Erro: a página de Chuva de Estrelas não encontrou todos os elementos HTML.");
     return;
   }
 
   const submitBtn = chuvaForm.querySelector('button[type="submit"]');
+
+  function mostrarMensagem(elemento, texto, tipo = "success") {
+    if (!elemento) return;
+
+    elemento.textContent = texto;
+    elemento.className = `message ${tipo}`;
+  }
+
+  function escaparHtml(valor) {
+    return String(valor)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function normalizarUser(user) {
+    if (!user) return "";
+
+    const userLimpo = String(user).trim().toLowerCase();
+
+    if (userLimpo.startsWith("@")) {
+      return userLimpo;
+    }
+
+    return `@${userLimpo}`;
+  }
+
+  function gerarSemanaAtual() {
+    const hoje = new Date();
+
+    const inicio = new Date(hoje);
+    const diaSemana = inicio.getDay();
+    const diferencaParaSegunda = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+    inicio.setDate(hoje.getDate() + diferencaParaSegunda);
+
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+
+    const formatar = (data) => {
+      return data.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+    };
+
+    return `${formatar(inicio)} a ${formatar(fim)}`;
+  }
 
   function normalizarTexto(texto) {
     return String(texto || "")
@@ -276,7 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "success"
       );
 
-      await registrarChuvaEstrelas({
+      const modulo = await import("../services/pontuacoes.service.js");
+
+      await modulo.registrarChuvaEstrelas({
         semana,
         membros
       });
@@ -302,4 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.textContent = "Enviar Chuva de Estrelas";
     }
   });
+
+  console.log("Página de Chuva de Estrelas carregada corretamente.");
 });
