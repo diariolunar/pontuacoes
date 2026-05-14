@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Detalhes do Sub | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Detalhes do sub</span>
+
+        <h1 id="subTitulo">Carregando...</h1>
+
+        <p id="subDescricao">
+          Consulte os membros e pontuações enviadas por este sub na semana atual.
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <a href="./subs.html" class="btn secondary">Voltar para Subs</a>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalMembrosTexto">Membros encontrados: 0</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Membros pontuados</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>User</th>
+                <th>Pontos</th>
+              </tr>
+            </thead>
+
+            <tbody id="subMembrosTabela"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p id="subDetalhesMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/sub-detalhes.js"></script>
+</body>
+</html>
