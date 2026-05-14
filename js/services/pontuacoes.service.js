@@ -12,7 +12,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import {
   criarIdSeguro,
@@ -37,6 +37,7 @@ export async function registrarPontuacaoSub({
 
   for (const membro of membros) {
     const userNormalizado = normalizarUser(membro.user);
+    const pontos = Number(membro.pontos || 0);
 
     await buscarOuCriarMembro({
       nome: membro.nome,
@@ -50,7 +51,7 @@ export async function registrarPontuacaoSub({
       sub,
       nome: membro.nome,
       user: userNormalizado,
-      pontos: Number(membro.pontos),
+      pontos,
       criadoEm: serverTimestamp()
     });
 
@@ -59,7 +60,7 @@ export async function registrarPontuacaoSub({
       nome: membro.nome,
       user: userNormalizado,
       categoria: "subs",
-      pontos: Number(membro.pontos),
+      pontos,
       origem: sub
     });
   }
@@ -76,28 +77,28 @@ export async function somarPontuacaoGeral({
   origem = ""
 }) {
   const userNormalizado = normalizarUser(user);
-  const rankingId = `${criarIdSeguro(semana)}_${criarIdSeguro(userNormalizado)}`;
+  const pontuacaoId = `${criarIdSeguro(semana)}_${criarIdSeguro(userNormalizado)}`;
 
-  const rankingRef = doc(db, "pontuacaoGeral", rankingId);
-  const rankingSnap = await getDoc(rankingRef);
+  const pontuacaoRef = doc(db, "pontuacaoGeral", pontuacaoId);
+  const pontuacaoSnap = await getDoc(pontuacaoRef);
 
   const campoCategoria = `total_${categoria}`;
 
-  if (!rankingSnap.exists()) {
-    await setDoc(rankingRef, {
+  if (!pontuacaoSnap.exists()) {
+    await setDoc(pontuacaoRef, {
       semana,
       nome,
       user: userNormalizado,
-      [campoCategoria]: pontos,
-      totalGeral: pontos,
+      [campoCategoria]: Number(pontos || 0),
+      totalGeral: Number(pontos || 0),
       atualizadoEm: serverTimestamp()
     });
   } else {
-    await updateDoc(rankingRef, {
+    await updateDoc(pontuacaoRef, {
       nome,
       user: userNormalizado,
-      [campoCategoria]: increment(pontos),
-      totalGeral: increment(pontos),
+      [campoCategoria]: increment(Number(pontos || 0)),
+      totalGeral: increment(Number(pontos || 0)),
       atualizadoEm: serverTimestamp()
     });
   }
@@ -107,7 +108,7 @@ export async function somarPontuacaoGeral({
     nome,
     user: userNormalizado,
     categoria,
-    pontos,
+    pontos: Number(pontos || 0),
     origem,
     criadoEm: serverTimestamp()
   });
