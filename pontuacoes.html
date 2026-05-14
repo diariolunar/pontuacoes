@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Pontuações | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Consulta pública</span>
+
+      <h1>Pontuações da semana</h1>
+
+      <p>
+        Pesquise pelo seu user para consultar sua pontuação atual da semana.
+        A busca funciona com ou sem @.
+      </p>
+
+      <div class="toolbar">
+        <div class="field">
+          <label for="buscaUser">Buscar por user</label>
+          <input
+            type="text"
+            id="buscaUser"
+            placeholder="Ex: @RKymae ou RKymae"
+          />
+        </div>
+
+        <button type="button" id="limparBuscaBtn" class="btn secondary">
+          Limpar busca
+        </button>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalUsuariosTexto">Usuários encontrados: 0</span>
+      </div>
+
+      <div id="pontuacoesLista" class="points-grid"></div>
+
+      <p id="pontuacoesMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/pontuacoes.js"></script>
+</body>
+</html>
