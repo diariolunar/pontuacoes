@@ -11,7 +11,8 @@ import {
 
 import {
   protegerPagina,
-  configurarBotaoLogout
+  configurarBotaoLogout,
+  configurarMenuPorPermissao
 } from "../core/auth.js";
 
 protegerPagina();
@@ -106,6 +107,8 @@ async function carregarDetalhesDoSub() {
   subDescricao.textContent = `Pontuações registradas para ${sub} na semana atual.`;
 
   try {
+    await configurarMenuPorPermissao();
+
     const pontuacoes = await listarPontuacoesSubs(semanaAtual, sub);
     const membrosAgrupados = agruparPontuacoesPorUser(pontuacoes);
 
