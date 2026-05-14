@@ -21,26 +21,17 @@ export function converterPontuacao(valor) {
 }
 
 export function criarIdSeguro(texto) {
-  return texto
+  return String(texto)
     .trim()
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replaceAll("@", "")
     .replaceAll(".", "-")
     .replaceAll("/", "-")
     .replaceAll(" ", "-")
     .replaceAll(":", "-")
-    .replaceAll("ç", "c")
-    .replaceAll("ã", "a")
-    .replaceAll("á", "a")
-    .replaceAll("à", "a")
-    .replaceAll("â", "a")
-    .replaceAll("é", "e")
-    .replaceAll("ê", "e")
-    .replaceAll("í", "i")
-    .replaceAll("ó", "o")
-    .replaceAll("ô", "o")
-    .replaceAll("õ", "o")
-    .replaceAll("ú", "u");
+    .replace(/[^\w-]/g, "");
 }
 
 export function mostrarMensagem(elemento, texto, tipo = "success") {
