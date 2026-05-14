@@ -63,8 +63,6 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* HEADER */
-
 .site-header {
   min-height: 82px;
   padding: 18px 20px;
@@ -131,8 +129,6 @@ button {
   background: rgba(255, 216, 77, 0.06);
 }
 
-/* BASE */
-
 .page {
   width: min(1120px, calc(100% - 28px));
   margin: 0 auto;
@@ -144,8 +140,6 @@ button {
   display: grid;
   place-items: center;
 }
-
-/* HERO */
 
 .hero {
   min-height: 430px;
@@ -193,8 +187,6 @@ button {
   gap: 12px;
 }
 
-/* TAG */
-
 .tag {
   display: inline-flex;
   width: fit-content;
@@ -206,8 +198,6 @@ button {
   font-size: 13px;
   font-weight: 800;
 }
-
-/* CARDS E PAINÉIS */
 
 .auth-card,
 .form-container,
@@ -297,8 +287,6 @@ button {
   color: var(--white);
 }
 
-/* BOTÕES */
-
 .btn {
   border: 0;
   border-radius: 999px;
@@ -372,8 +360,6 @@ button {
   color: var(--danger);
 }
 
-/* MEMBROS NO FORMULÁRIO */
-
 .members-box {
   border: 1px solid var(--border-purple);
   border-radius: 20px;
@@ -430,8 +416,6 @@ button {
   min-height: 46px;
 }
 
-/* DASHBOARD */
-
 .dashboard-layout {
   min-height: calc(100vh - 82px);
   display: grid;
@@ -445,6 +429,16 @@ button {
   display: grid;
   gap: 18px;
   border-bottom: 1px solid var(--border-purple);
+}
+
+.sidebar-user {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 216, 77, 0.08);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .sidebar nav {
@@ -558,8 +552,6 @@ button {
   color: var(--gold);
 }
 
-/* CONSULTA DE PONTUAÇÕES */
-
 .toolbar {
   display: grid;
   gap: 14px;
@@ -644,8 +636,6 @@ button {
   color: var(--muted);
 }
 
-/* SUBS */
-
 .subs-grid {
   display: grid;
   gap: 14px;
@@ -717,7 +707,50 @@ button {
   color: var(--muted);
 }
 
-/* TABELAS */
+.members-admin-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.member-admin-card {
+  border: 1px solid var(--border-purple);
+  border-radius: 22px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(155, 53, 217, 0.16), transparent 35%),
+    rgba(7, 0, 15, 0.46);
+  box-shadow: var(--shadow);
+}
+
+.member-admin-header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.member-admin-header h2 {
+  margin: 0 0 6px;
+  color: var(--white);
+  font-size: 21px;
+}
+
+.member-admin-header p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.member-edit-form {
+  display: grid;
+  gap: 14px;
+}
+
+.member-admin-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
 
 .table-wrap {
   width: 100%;
@@ -749,8 +782,6 @@ td {
   color: var(--text);
 }
 
-/* FOOTER */
-
 .site-footer {
   min-height: 72px;
   padding: 20px;
@@ -763,8 +794,6 @@ td {
   font-size: 14px;
   text-align: center;
 }
-
-/* CELULAR PEQUENO */
 
 @media (max-width: 420px) {
   .site-header {
@@ -818,8 +847,6 @@ td {
     width: 100%;
   }
 }
-
-/* TABLET */
 
 @media (min-width: 680px) {
   .page {
@@ -887,9 +914,21 @@ td {
   .subs-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
 
-/* DESKTOP */
+  .member-admin-header {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .member-edit-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .member-admin-actions {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
 @media (min-width: 960px) {
   .site-header {
@@ -937,14 +976,8 @@ td {
   .subs-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-}
 
-.sidebar-user {
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(255, 216, 77, 0.08);
-  border: 1px solid var(--border);
-  color: var(--gold);
-  font-size: 13px;
-  font-weight: 900;
+  .members-admin-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
