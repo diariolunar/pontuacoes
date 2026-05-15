@@ -1,4 +1,5 @@
 import {
+  limparPontuacoesSubsSemana,
   listarEnviosSubs
 } from "../services/pontuacoes.service.js";
 
@@ -21,6 +22,7 @@ const subsLista = document.getElementById("subsLista");
 const subsMessage = document.getElementById("subsMessage");
 const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalSubsTexto = document.getElementById("totalSubsTexto");
+const limparSemanaSubsBtn = document.getElementById("limparSemanaSubsBtn");
 
 const subs = [
   { nome: "A-1 Chama Eterna", titulo: "A-1 - Chama Eterna", desativado: false },
@@ -39,6 +41,8 @@ const subs = [
   { nome: "A-14 Fragmentos da Noite", titulo: "A-14 - Fragmentos da Noite", desativado: false },
   { nome: "A-15 Véu Escarlate", titulo: "A-15 - Véu Escarlate", desativado: false }
 ];
+
+let enviosDaSemana = [];
 
 function contarEnviosDoSub(envios, nomeSub) {
   return envios.filter((envio) => envio.sub === nomeSub).length;
@@ -77,6 +81,17 @@ function criarCardSub(sub, envios) {
   `;
 }
 
+function renderizarSubs(envios) {
+  const subsAtivos = subs.filter((sub) => !sub.desativado);
+  const subsEnviados = subsAtivos.filter((sub) => contarEnviosDoSub(envios, sub.nome) > 0);
+
+  totalSubsTexto.textContent = `Subs enviados: ${subsEnviados.length} de ${subsAtivos.length}`;
+
+  subsLista.innerHTML = subs
+    .map((sub) => criarCardSub(sub, envios))
+    .join("");
+}
+
 async function carregarSubs() {
   const semanaAtual = gerarSemanaAtual();
 
@@ -85,15 +100,9 @@ async function carregarSubs() {
   try {
     await configurarMenuPorPermissao();
 
-    const envios = await listarEnviosSubs(semanaAtual);
-    const subsAtivos = subs.filter((sub) => !sub.desativado);
-    const subsEnviados = subsAtivos.filter((sub) => contarEnviosDoSub(envios, sub.nome) > 0);
+    enviosDaSemana = await listarEnviosSubs(semanaAtual);
 
-    totalSubsTexto.textContent = `Subs enviados: ${subsEnviados.length} de ${subsAtivos.length}`;
-
-    subsLista.innerHTML = subs
-      .map((sub) => criarCardSub(sub, envios))
-      .join("");
+    renderizarSubs(enviosDaSemana);
 
     subsMessage.textContent = "";
     subsMessage.className = "message";
@@ -107,5 +116,55 @@ async function carregarSubs() {
     );
   }
 }
+
+limparSemanaSubsBtn.addEventListener("click", async () => {
+  const semanaAtual = gerarSemanaAtual();
+
+  if (enviosDaSemana.length === 0) {
+    mostrarMensagem(
+      subsMessage,
+      "Não há envios de subs para limpar nesta semana.",
+      "error"
+    );
+
+    return;
+  }
+
+  const confirmar = window.confirm(
+    `Tem certeza que deseja limpar TODAS as listas dos subs da semana ${semanaAtual}?\n\nIsso apagará os registros internos dos subs e os envios da semana, mas NÃO remove os pontos da Pontuação Geral.`
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    limparSemanaSubsBtn.disabled = true;
+    limparSemanaSubsBtn.textContent = "Limpando...";
+
+    const resultado = await limparPontuacoesSubsSemana({
+      semana: semanaAtual
+    });
+
+    mostrarMensagem(
+      subsMessage,
+      `Listas dos subs limpas com sucesso. Registros removidos: ${resultado.registrosRemovidos}. Envios removidos: ${resultado.enviosRemovidos}.`,
+      "success"
+    );
+
+    await carregarSubs();
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      subsMessage,
+      `Erro ao limpar listas dos subs: ${erro.message || "tente novamente."}`,
+      "error"
+    );
+  } finally {
+    limparSemanaSubsBtn.disabled = false;
+    limparSemanaSubsBtn.textContent = "Limpar lista da semana";
+  }
+});
 
 carregarSubs();
