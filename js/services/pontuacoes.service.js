@@ -146,6 +146,52 @@ export async function registrarChuvaEstrelas({
   });
 }
 
+export async function registrarAjusteManual({
+  semana,
+  nome,
+  user,
+  tipo,
+  pontos,
+  motivo
+}) {
+  const userNormalizado = normalizarUser(user);
+  const pontosBase = Math.abs(Number(pontos || 0));
+  const pontosFinais = tipo === "remover" ? pontosBase * -1 : pontosBase;
+
+  await buscarOuCriarMembro({
+    nome,
+    user: userNormalizado
+  });
+
+  await addDoc(collection(db, "ajustesManuais"), {
+    semana,
+    nome,
+    user: userNormalizado,
+    tipo,
+    pontos: pontosFinais,
+    motivo,
+    criadoEm: serverTimestamp()
+  });
+
+  await somarPontuacaoGeral({
+    semana,
+    nome,
+    user: userNormalizado,
+    categoria: "ajustes",
+    pontos: pontosFinais,
+    origem: `Ajuste manual: ${motivo}`
+  });
+
+  return {
+    semana,
+    nome,
+    user: userNormalizado,
+    tipo,
+    pontos: pontosFinais,
+    motivo
+  };
+}
+
 export async function somarPontuacaoGeral({
   semana,
   nome,
@@ -291,6 +337,26 @@ export async function listarPontuacoesCategoria({
   }
 
   return registros;
+}
+
+export async function listarAjustesManuais(semana = "") {
+  const consulta = query(
+    collection(db, "ajustesManuais"),
+    orderBy("criadoEm", "desc")
+  );
+
+  const snapshot = await getDocs(consulta);
+
+  let ajustes = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  if (semana) {
+    ajustes = ajustes.filter((ajuste) => ajuste.semana === semana);
+  }
+
+  return ajustes;
 }
 
 export async function limparPontuacoesCategoriaSemana({

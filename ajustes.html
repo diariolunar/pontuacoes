@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Ajustes Manuais | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel da Leh</span>
+
+        <h1>Ajustes Manuais</h1>
+
+        <p>
+          Adicione ou remova pontos manualmente quando houver erro, duplicidade,
+          bonificação extra ou correção necessária.
+        </p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Novo ajuste</h2>
+        </div>
+
+        <form id="ajusteForm" class="form">
+          <div class="field">
+            <label for="nomeMembro">Nome do membro</label>
+            <input
+              type="text"
+              id="nomeMembro"
+              placeholder="Ex: Mayke Arrais"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="userMembro">User do membro</label>
+            <input
+              type="text"
+              id="userMembro"
+              placeholder="Ex: @RKymae"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="tipoAjuste">Tipo de ajuste</label>
+            <select id="tipoAjuste" required>
+              <option value="adicionar">Adicionar pontos</option>
+              <option value="remover">Remover pontos</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="pontosAjuste">Quantidade de pontos</label>
+            <input
+              type="number"
+              id="pontosAjuste"
+              placeholder="Ex: 50"
+              min="1"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="motivoAjuste">Motivo do ajuste</label>
+            <textarea
+              id="motivoAjuste"
+              placeholder="Ex: Pontuação duplicada na Leitura Lunar"
+              required
+            ></textarea>
+          </div>
+
+          <button type="submit" class="btn primary full">
+            Salvar ajuste
+          </button>
+        </form>
+
+        <p id="ajusteMessage" class="message"></p>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalAjustesTexto">Ajustes registrados: 0</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Ajustes da semana</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>User</th>
+                <th>Tipo</th>
+                <th>Pontos</th>
+                <th>Motivo</th>
+              </tr>
+            </thead>
+
+            <tbody id="ajustesTabela"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/ajustes.js"></script>
+</body>
+</html>
