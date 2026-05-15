@@ -29,7 +29,7 @@ const subs = [
   { nome: "A-4 Sussurros da Aurora", titulo: "A-4 - Sussurros da Aurora", desativado: false },
   { nome: "A-5 Crepúsculo", titulo: "A-5 - Crepúsculo", desativado: false },
   { nome: "A-6 Trono Profano", titulo: "A-6 - Trono Profano", desativado: false },
-  { nome: "A-7 DESATIVADO", titulo: "A-7 - Desativado no momento", desativado: true },
+  { nome: "A-7 Margens de Mundos", titulo: "A-7 - Margens de Mundos", desativado: false },
   { nome: "A-8 Ordem do Eclipse", titulo: "A-8 - Ordem do Eclipse", desativado: false },
   { nome: "A-9 Cicatrizes Literárias", titulo: "A-9 - Cicatrizes Literárias", desativado: false },
   { nome: "A-10 Quasar", titulo: "A-10 - Quasar", desativado: false },

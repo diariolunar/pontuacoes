@@ -8,11 +8,12 @@ import {
   getDoc,
   getDocs,
   increment,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  where,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import {
@@ -24,12 +25,102 @@ import {
   buscarOuCriarMembro
 } from "./membros.service.js";
 
+function ordenarPorCriadoEmDesc(lista) {
+  return [...lista].sort((a, b) => {
+    const dataA = a.criadoEm?.seconds || 0;
+    const dataB = b.criadoEm?.seconds || 0;
+
+    return dataB - dataA;
+  });
+}
+
+function ordenarPorTotalDesc(lista) {
+  return [...lista].sort((a, b) => {
+    return Number(b.totalGeral || 0) - Number(a.totalGeral || 0);
+  });
+}
+
+async function prepararMembroNoBatch(batch, { nome, user }) {
+  const userNormalizado = normalizarUser(user);
+  const membroId = criarIdSeguro(userNormalizado);
+  const membroRef = doc(db, "membros", membroId);
+  const membroSnap = await getDoc(membroRef);
+
+  if (!membroSnap.exists()) {
+    batch.set(membroRef, {
+      nome: nome.trim(),
+      user: userNormalizado,
+      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp()
+    });
+  }
+
+  return userNormalizado;
+}
+
+async function somarPontuacaoGeralNoBatch(batch, {
+  semana,
+  nome,
+  user,
+  categoria,
+  pontos
+}) {
+  const userNormalizado = normalizarUser(user);
+  const pontuacaoId = `${criarIdSeguro(semana)}_${criarIdSeguro(userNormalizado)}`;
+  const pontuacaoRef = doc(db, "pontuacaoGeral", pontuacaoId);
+  const pontuacaoSnap = await getDoc(pontuacaoRef);
+
+  const campoCategoria = `total_${categoria}`;
+  const pontosNumericos = Number(pontos || 0);
+
+  if (!pontuacaoSnap.exists()) {
+    batch.set(pontuacaoRef, {
+      semana,
+      nome,
+      user: userNormalizado,
+      [campoCategoria]: pontosNumericos,
+      totalGeral: pontosNumericos,
+      atualizadoEm: serverTimestamp()
+    });
+  } else {
+    batch.update(pontuacaoRef, {
+      [campoCategoria]: increment(pontosNumericos),
+      totalGeral: increment(pontosNumericos),
+      atualizadoEm: serverTimestamp()
+    });
+  }
+}
+
+function adicionarHistoricoNoBatch(batch, {
+  semana,
+  nome,
+  user,
+  categoria,
+  pontos,
+  origem = ""
+}) {
+  const historicoRef = doc(collection(db, "historicoPontuacoes"));
+
+  batch.set(historicoRef, {
+    semana,
+    nome,
+    user: normalizarUser(user),
+    categoria,
+    pontos: Number(pontos || 0),
+    origem,
+    criadoEm: serverTimestamp()
+  });
+}
+
 export async function registrarPontuacaoSub({
   sub,
   semana,
   membros
 }) {
-  const envioRef = await addDoc(collection(db, "enviosSubs"), {
+  const batch = writeBatch(db);
+  const envioRef = doc(collection(db, "enviosSubs"));
+
+  batch.set(envioRef, {
     sub,
     semana,
     totalMembros: membros.length,
@@ -37,15 +128,15 @@ export async function registrarPontuacaoSub({
   });
 
   for (const membro of membros) {
-    const userNormalizado = normalizarUser(membro.user);
-    const pontos = Number(membro.pontos || 0);
-
-    await buscarOuCriarMembro({
+    const userNormalizado = await prepararMembroNoBatch(batch, {
       nome: membro.nome,
-      user: userNormalizado
+      user: membro.user
     });
 
-    await addDoc(collection(db, "pontuacoesSubs"), {
+    const pontos = Number(membro.pontos || 0);
+    const pontuacaoRef = doc(collection(db, "pontuacoesSubs"));
+
+    batch.set(pontuacaoRef, {
       envioId: envioRef.id,
       semana,
       sub,
@@ -55,7 +146,15 @@ export async function registrarPontuacaoSub({
       criadoEm: serverTimestamp()
     });
 
-    await somarPontuacaoGeral({
+    await somarPontuacaoGeralNoBatch(batch, {
+      semana,
+      nome: membro.nome,
+      user: userNormalizado,
+      categoria: "subs",
+      pontos
+    });
+
+    adicionarHistoricoNoBatch(batch, {
       semana,
       nome: membro.nome,
       user: userNormalizado,
@@ -64,6 +163,8 @@ export async function registrarPontuacaoSub({
       origem: sub
     });
   }
+
+  await batch.commit();
 
   return envioRef.id;
 }
@@ -76,7 +177,10 @@ export async function registrarPontuacaoFixa({
   colecao,
   origem
 }) {
-  const envioRef = await addDoc(collection(db, `envios_${colecao}`), {
+  const batch = writeBatch(db);
+  const envioRef = doc(collection(db, `envios_${colecao}`));
+
+  batch.set(envioRef, {
     semana,
     categoria,
     origem,
@@ -86,15 +190,15 @@ export async function registrarPontuacaoFixa({
   });
 
   for (const membro of membros) {
-    const userNormalizado = normalizarUser(membro.user);
-    const pontosNumericos = Number(pontos || 0);
-
-    await buscarOuCriarMembro({
+    const userNormalizado = await prepararMembroNoBatch(batch, {
       nome: membro.nome,
-      user: userNormalizado
+      user: membro.user
     });
 
-    await addDoc(collection(db, colecao), {
+    const pontosNumericos = Number(pontos || 0);
+    const registroRef = doc(collection(db, colecao));
+
+    batch.set(registroRef, {
       envioId: envioRef.id,
       semana,
       categoria,
@@ -105,7 +209,15 @@ export async function registrarPontuacaoFixa({
       criadoEm: serverTimestamp()
     });
 
-    await somarPontuacaoGeral({
+    await somarPontuacaoGeralNoBatch(batch, {
+      semana,
+      nome: membro.nome,
+      user: userNormalizado,
+      categoria,
+      pontos: pontosNumericos
+    });
+
+    adicionarHistoricoNoBatch(batch, {
       semana,
       nome: membro.nome,
       user: userNormalizado,
@@ -114,6 +226,8 @@ export async function registrarPontuacaoFixa({
       origem
     });
   }
+
+  await batch.commit();
 
   return envioRef.id;
 }
@@ -125,7 +239,10 @@ export async function registrarPontuacaoVariavel({
   colecao,
   origem
 }) {
-  const envioRef = await addDoc(collection(db, `envios_${colecao}`), {
+  const batch = writeBatch(db);
+  const envioRef = doc(collection(db, `envios_${colecao}`));
+
+  batch.set(envioRef, {
     semana,
     categoria,
     origem,
@@ -134,16 +251,16 @@ export async function registrarPontuacaoVariavel({
   });
 
   for (const membro of membros) {
-    const userNormalizado = normalizarUser(membro.user);
-    const pontos = Number(membro.pontos || 0);
-    const descricao = membro.descricao || "";
-
-    await buscarOuCriarMembro({
+    const userNormalizado = await prepararMembroNoBatch(batch, {
       nome: membro.nome,
-      user: userNormalizado
+      user: membro.user
     });
 
-    await addDoc(collection(db, colecao), {
+    const pontos = Number(membro.pontos || 0);
+    const descricao = membro.descricao || "";
+    const registroRef = doc(collection(db, colecao));
+
+    batch.set(registroRef, {
       envioId: envioRef.id,
       semana,
       categoria,
@@ -155,7 +272,15 @@ export async function registrarPontuacaoVariavel({
       criadoEm: serverTimestamp()
     });
 
-    await somarPontuacaoGeral({
+    await somarPontuacaoGeralNoBatch(batch, {
+      semana,
+      nome: membro.nome,
+      user: userNormalizado,
+      categoria,
+      pontos
+    });
+
+    adicionarHistoricoNoBatch(batch, {
       semana,
       nome: membro.nome,
       user: userNormalizado,
@@ -164,6 +289,8 @@ export async function registrarPontuacaoVariavel({
       origem: descricao ? `${origem}: ${descricao}` : origem
     });
   }
+
+  await batch.commit();
 
   return envioRef.id;
 }
@@ -204,42 +331,79 @@ export async function registrarAjusteManual({
   pontos,
   motivo
 }) {
-  const userNormalizado = normalizarUser(user);
-  const pontosBase = Math.abs(Number(pontos || 0));
-  const pontosFinais = tipo === "remover" ? pontosBase * -1 : pontosBase;
-
-  await buscarOuCriarMembro({
-    nome,
-    user: userNormalizado
+  const resultados = await registrarAjustesManuais({
+    semana,
+    ajustes: [
+      {
+        nome,
+        user,
+        tipo,
+        pontos,
+        motivo
+      }
+    ]
   });
 
-  await addDoc(collection(db, "ajustesManuais"), {
-    semana,
-    nome,
-    user: userNormalizado,
-    tipo,
-    pontos: pontosFinais,
-    motivo,
-    criadoEm: serverTimestamp()
-  });
+  return resultados[0];
+}
 
-  await somarPontuacaoGeral({
-    semana,
-    nome,
-    user: userNormalizado,
-    categoria: "ajustes",
-    pontos: pontosFinais,
-    origem: `Ajuste manual: ${motivo}`
-  });
+export async function registrarAjustesManuais({
+  semana,
+  ajustes
+}) {
+  const batch = writeBatch(db);
+  const resultados = [];
 
-  return {
-    semana,
-    nome,
-    user: userNormalizado,
-    tipo,
-    pontos: pontosFinais,
-    motivo
-  };
+  for (const ajuste of ajustes) {
+    const userNormalizado = await prepararMembroNoBatch(batch, {
+      nome: ajuste.nome,
+      user: ajuste.user
+    });
+
+    const pontosBase = Math.abs(Number(ajuste.pontos || 0));
+    const pontosFinais = ajuste.tipo === "remover" ? pontosBase * -1 : pontosBase;
+    const ajusteRef = doc(collection(db, "ajustesManuais"));
+
+    batch.set(ajusteRef, {
+      semana,
+      nome: ajuste.nome,
+      user: userNormalizado,
+      tipo: ajuste.tipo,
+      pontos: pontosFinais,
+      motivo: ajuste.motivo,
+      criadoEm: serverTimestamp()
+    });
+
+    await somarPontuacaoGeralNoBatch(batch, {
+      semana,
+      nome: ajuste.nome,
+      user: userNormalizado,
+      categoria: "ajustes",
+      pontos: pontosFinais
+    });
+
+    adicionarHistoricoNoBatch(batch, {
+      semana,
+      nome: ajuste.nome,
+      user: userNormalizado,
+      categoria: "ajustes",
+      pontos: pontosFinais,
+      origem: `Ajuste manual: ${ajuste.motivo}`
+    });
+
+    resultados.push({
+      semana,
+      nome: ajuste.nome,
+      user: userNormalizado,
+      tipo: ajuste.tipo,
+      pontos: pontosFinais,
+      motivo: ajuste.motivo
+    });
+  }
+
+  await batch.commit();
+
+  return resultados;
 }
 
 export async function somarPontuacaoGeral({
@@ -250,82 +414,84 @@ export async function somarPontuacaoGeral({
   pontos,
   origem = ""
 }) {
-  const userNormalizado = normalizarUser(user);
-  const pontuacaoId = `${criarIdSeguro(semana)}_${criarIdSeguro(userNormalizado)}`;
+  const batch = writeBatch(db);
 
-  const pontuacaoRef = doc(db, "pontuacaoGeral", pontuacaoId);
-  const pontuacaoSnap = await getDoc(pontuacaoRef);
-
-  const campoCategoria = `total_${categoria}`;
-  const pontosNumericos = Number(pontos || 0);
-
-  if (!pontuacaoSnap.exists()) {
-    await setDoc(pontuacaoRef, {
-      semana,
-      nome,
-      user: userNormalizado,
-      [campoCategoria]: pontosNumericos,
-      totalGeral: pontosNumericos,
-      atualizadoEm: serverTimestamp()
-    });
-  } else {
-    await updateDoc(pontuacaoRef, {
-      [campoCategoria]: increment(pontosNumericos),
-      totalGeral: increment(pontosNumericos),
-      atualizadoEm: serverTimestamp()
-    });
-  }
-
-  await addDoc(collection(db, "historicoPontuacoes"), {
+  await somarPontuacaoGeralNoBatch(batch, {
     semana,
     nome,
-    user: userNormalizado,
+    user,
     categoria,
-    pontos: pontosNumericos,
-    origem,
-    criadoEm: serverTimestamp()
+    pontos
   });
+
+  adicionarHistoricoNoBatch(batch, {
+    semana,
+    nome,
+    user,
+    categoria,
+    pontos,
+    origem
+  });
+
+  await batch.commit();
 }
 
 export async function listarUltimosEnviosSubs() {
-  const consulta = query(
-    collection(db, "enviosSubs"),
-    orderBy("criadoEm", "desc")
+  const snapshot = await getDocs(collection(db, "enviosSubs"));
+
+  return ordenarPorCriadoEmDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      ...documento.data()
+    }))
   );
-
-  const snapshot = await getDocs(consulta);
-
-  return snapshot.docs.map((documento) => ({
-    id: documento.id,
-    ...documento.data()
-  }));
 }
 
 export async function listarEnviosSubs(semana = "") {
-  const consulta = query(
-    collection(db, "enviosSubs"),
-    orderBy("criadoEm", "desc")
-  );
+  let consulta = collection(db, "enviosSubs");
+
+  if (semana) {
+    consulta = query(consulta, where("semana", "==", semana));
+  }
 
   const snapshot = await getDocs(consulta);
 
-  let envios = snapshot.docs.map((documento) => ({
-    id: documento.id,
-    ...documento.data()
-  }));
+  return ordenarPorCriadoEmDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      ...documento.data()
+    }))
+  );
+}
+
+export async function listarEnviosCategoria({
+  colecao,
+  semana = ""
+}) {
+  const nomeColecao = `envios_${colecao}`;
+  let consulta = collection(db, nomeColecao);
 
   if (semana) {
-    envios = envios.filter((envio) => envio.semana === semana);
+    consulta = query(consulta, where("semana", "==", semana));
   }
 
-  return envios;
+  const snapshot = await getDocs(consulta);
+
+  return ordenarPorCriadoEmDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      colecao,
+      ...documento.data()
+    }))
+  );
 }
 
 export async function listarPontuacoesSubs(semana = "", sub = "") {
-  const consulta = query(
-    collection(db, "pontuacoesSubs"),
-    orderBy("criadoEm", "desc")
-  );
+  let consulta = collection(db, "pontuacoesSubs");
+
+  if (semana) {
+    consulta = query(consulta, where("semana", "==", semana));
+  }
 
   const snapshot = await getDocs(consulta);
 
@@ -333,79 +499,91 @@ export async function listarPontuacoesSubs(semana = "", sub = "") {
     id: documento.id,
     ...documento.data()
   }));
-
-  if (semana) {
-    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.semana === semana);
-  }
 
   if (sub) {
     pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === sub);
   }
 
-  return pontuacoes;
+  return ordenarPorCriadoEmDesc(pontuacoes);
 }
 
 export async function listarPontuacaoGeral(semana = "") {
-  const consulta = query(
-    collection(db, "pontuacaoGeral"),
-    orderBy("totalGeral", "desc")
-  );
+  let consulta = collection(db, "pontuacaoGeral");
+
+  if (semana) {
+    consulta = query(consulta, where("semana", "==", semana));
+  }
 
   const snapshot = await getDocs(consulta);
 
-  let pontuacoes = snapshot.docs.map((documento) => ({
-    id: documento.id,
-    ...documento.data()
-  }));
-
-  if (semana) {
-    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.semana === semana);
-  }
-
-  return pontuacoes;
+  return ordenarPorTotalDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      ...documento.data()
+    }))
+  );
 }
 
 export async function listarPontuacoesCategoria({
   colecao,
   semana = ""
 }) {
-  const consulta = query(
-    collection(db, colecao),
-    orderBy("criadoEm", "desc")
-  );
+  let consulta = collection(db, colecao);
+
+  if (semana) {
+    consulta = query(consulta, where("semana", "==", semana));
+  }
 
   const snapshot = await getDocs(consulta);
 
-  let registros = snapshot.docs.map((documento) => ({
-    id: documento.id,
-    ...documento.data()
-  }));
-
-  if (semana) {
-    registros = registros.filter((registro) => registro.semana === semana);
-  }
-
-  return registros;
+  return ordenarPorCriadoEmDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      ...documento.data()
+    }))
+  );
 }
 
 export async function listarAjustesManuais(semana = "") {
-  const consulta = query(
-    collection(db, "ajustesManuais"),
-    orderBy("criadoEm", "desc")
+  let consulta = collection(db, "ajustesManuais");
+
+  if (semana) {
+    consulta = query(consulta, where("semana", "==", semana));
+  }
+
+  const snapshot = await getDocs(consulta);
+
+  return ordenarPorCriadoEmDesc(
+    snapshot.docs.map((documento) => ({
+      id: documento.id,
+      ...documento.data()
+    }))
+  );
+}
+
+export async function listarHistoricoPorUser({
+  user,
+  semana = ""
+}) {
+  const userNormalizado = normalizarUser(user);
+
+  let consulta = query(
+    collection(db, "historicoPontuacoes"),
+    where("user", "==", userNormalizado)
   );
 
   const snapshot = await getDocs(consulta);
 
-  let ajustes = snapshot.docs.map((documento) => ({
+  let historico = snapshot.docs.map((documento) => ({
     id: documento.id,
     ...documento.data()
   }));
 
   if (semana) {
-    ajustes = ajustes.filter((ajuste) => ajuste.semana === semana);
+    historico = historico.filter((item) => item.semana === semana);
   }
 
-  return ajustes;
+  return ordenarPorCriadoEmDesc(historico);
 }
 
 export async function limparPontuacoesCategoriaSemana({
@@ -416,31 +594,30 @@ export async function limparPontuacoesCategoriaSemana({
     throw new Error("Coleção ou semana não informada.");
   }
 
-  const registrosSnapshot = await getDocs(collection(db, colecao));
+  const batch = writeBatch(db);
 
-  const registrosDaSemana = registrosSnapshot.docs.filter((documento) => {
-    const dados = documento.data();
-    return dados.semana === semana;
-  });
+  const registrosSnapshot = await getDocs(
+    query(collection(db, colecao), where("semana", "==", semana))
+  );
 
-  for (const documento of registrosDaSemana) {
-    await deleteDoc(doc(db, colecao, documento.id));
+  for (const documento of registrosSnapshot.docs) {
+    batch.delete(doc(db, colecao, documento.id));
   }
 
   const enviosColecao = `envios_${colecao}`;
-  const enviosSnapshot = await getDocs(collection(db, enviosColecao));
 
-  const enviosDaSemana = enviosSnapshot.docs.filter((documento) => {
-    const dados = documento.data();
-    return dados.semana === semana;
-  });
+  const enviosSnapshot = await getDocs(
+    query(collection(db, enviosColecao), where("semana", "==", semana))
+  );
 
-  for (const documento of enviosDaSemana) {
-    await deleteDoc(doc(db, enviosColecao, documento.id));
+  for (const documento of enviosSnapshot.docs) {
+    batch.delete(doc(db, enviosColecao, documento.id));
   }
 
+  await batch.commit();
+
   return {
-    registrosRemovidos: registrosDaSemana.length,
-    enviosRemovidos: enviosDaSemana.length
+    registrosRemovidos: registrosSnapshot.docs.length,
+    enviosRemovidos: enviosSnapshot.docs.length
   };
 }

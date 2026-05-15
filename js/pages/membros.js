@@ -12,6 +12,7 @@ import {
 } from "../core/auth.js";
 
 import {
+  criarIdSeguro,
   escaparHtml,
   mostrarMensagem,
   normalizarUser
@@ -23,6 +24,7 @@ configurarBotaoLogout();
 const novoMembroForm = document.getElementById("novoMembroForm");
 const novoNome = document.getElementById("novoNome");
 const novoUser = document.getElementById("novoUser");
+const novoMembroMessage = document.getElementById("novoMembroMessage");
 
 const buscaMembro = document.getElementById("buscaMembro");
 const limparBuscaBtn = document.getElementById("limparBuscaBtn");
@@ -33,6 +35,8 @@ const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 let membrosCarregados = [];
 
 function criarCardMembro(membro) {
+  const historicoUrl = `./membro-historico.html?user=${encodeURIComponent(membro.user || "")}`;
+
   return `
     <article class="member-admin-card member-list-card" data-member-id="${escaparHtml(membro.id)}">
       <div class="member-admin-header">
@@ -67,6 +71,10 @@ function criarCardMembro(membro) {
           <button type="submit" class="btn primary">
             Salvar
           </button>
+
+          <a href="${historicoUrl}" class="btn secondary">
+            Histórico
+          </a>
 
           <button type="button" class="btn danger delete-member-btn">
             Excluir
@@ -280,7 +288,7 @@ novoMembroForm.addEventListener("submit", async (evento) => {
 
   if (!nome || !user) {
     mostrarMensagem(
-      membrosMessage,
+      novoMembroMessage,
       "Preencha nome e user para cadastrar.",
       "error"
     );
@@ -309,7 +317,7 @@ novoMembroForm.addEventListener("submit", async (evento) => {
     novoMembroForm.reset();
 
     mostrarMensagem(
-      membrosMessage,
+      novoMembroMessage,
       "Membro cadastrado com sucesso.",
       "success"
     );
@@ -319,7 +327,7 @@ novoMembroForm.addEventListener("submit", async (evento) => {
     console.error(erro);
 
     mostrarMensagem(
-      membrosMessage,
+      novoMembroMessage,
       `Erro ao cadastrar membro: ${erro.message || "tente novamente."}`,
       "error"
     );

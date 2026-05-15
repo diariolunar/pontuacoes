@@ -49,9 +49,9 @@ const mapaSubs = [
     chaves: ["a-6", "a6", "trono profano"]
   },
   {
-    valor: "A-7 DESATIVADO",
-    desativado: true,
-    chaves: ["a-7", "a7"]
+    valor: "A-7 Margens de Mundos",
+    desativado: false,
+    chaves: ["a-7", "a7", "margens de mundos"]
   },
   {
     valor: "A-8 Ordem do Eclipse",

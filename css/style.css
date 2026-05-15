@@ -495,6 +495,7 @@ button {
   min-height: calc(100vh - 82px);
   display: grid;
   grid-template-columns: 1fr;
+  align-items: start;
 }
 
 .sidebar {
@@ -525,6 +526,7 @@ button {
 
 .sidebar nav::-webkit-scrollbar {
   height: 6px;
+  width: 8px;
 }
 
 .sidebar nav::-webkit-scrollbar-thumb {
@@ -577,6 +579,10 @@ button {
   margin: 24px 0;
 }
 
+.dashboard-smart-grid {
+  grid-template-columns: 1fr;
+}
+
 .info-card {
   padding: 22px;
 }
@@ -589,8 +595,9 @@ button {
 
 .info-card p {
   margin: 0;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
+  line-height: 1.25;
 }
 
 .panel {
@@ -991,6 +998,10 @@ td {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .dashboard-smart-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .panel-header {
     display: flex;
     align-items: center;
@@ -1041,7 +1052,7 @@ td {
   }
 
   .member-admin-actions {
-    grid-template-columns: auto auto;
+    grid-template-columns: auto auto auto;
   }
 }
 
@@ -1061,12 +1072,15 @@ td {
   }
 
   .sidebar {
+    height: calc(100vh - 82px);
     min-height: calc(100vh - 82px);
     border-bottom: 0;
     border-right: 1px solid var(--border-purple);
-    align-content: space-between;
+    align-content: start;
     position: sticky;
     top: 82px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .sidebar nav {
@@ -1084,6 +1098,10 @@ td {
 
   .cards-grid {
     grid-template-columns: repeat(4, minmax(160px, 1fr));
+  }
+
+  .dashboard-smart-grid {
+    grid-template-columns: repeat(5, minmax(160px, 1fr));
   }
 
   .points-grid {

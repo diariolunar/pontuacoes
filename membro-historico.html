@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Histórico do Membro | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Histórico individual</span>
+
+        <h1 id="historicoTitulo">Carregando...</h1>
+
+        <p id="historicoDescricao">
+          Consulte todos os lançamentos de pontuação registrados para este membro.
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <a href="./membros.html" class="btn secondary">Voltar para Membros</a>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalHistoricoTexto">Registros encontrados: 0</span>
+        <span id="totalPontosTexto">Total no histórico: 0</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Lançamentos encontrados</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Semana</th>
+                <th>Categoria</th>
+                <th>Pontos</th>
+                <th>Origem</th>
+              </tr>
+            </thead>
+
+            <tbody id="historicoTabela"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p id="historicoMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/membro-historico.js"></script>
+</body>
+</html>

@@ -19,42 +19,15 @@ const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
 let pontuacoesCarregadas = [];
 
 const categorias = [
-  {
-    campo: "total_subs",
-    nome: "Subs"
-  },
-  {
-    campo: "total_leituraLunar",
-    nome: "Leitura Lunar"
-  },
-  {
-    campo: "total_chuvaEstrelas",
-    nome: "Chuva de Estrelas"
-  },
-  {
-    campo: "total_adms",
-    nome: "Pontuação dos ADMs"
-  },
-  {
-    campo: "total_diarioLunar",
-    nome: "Diário Lunar"
-  },
-  {
-    campo: "total_ascensao",
-    nome: "Ascensão"
-  },
-  {
-    campo: "total_redesSociais",
-    nome: "Redes Sociais"
-  },
-  {
-    campo: "total_divulgacoes",
-    nome: "Divulgações"
-  },
-  {
-    campo: "total_ajustes",
-    nome: "Ajustes Manuais"
-  }
+  { campo: "total_subs", nome: "Subs" },
+  { campo: "total_leituraLunar", nome: "Leitura Lunar" },
+  { campo: "total_chuvaEstrelas", nome: "Chuva de Estrelas" },
+  { campo: "total_adms", nome: "Pontuação dos ADMs" },
+  { campo: "total_diarioLunar", nome: "Diário Lunar" },
+  { campo: "total_ascensao", nome: "Ascensão" },
+  { campo: "total_redesSociais", nome: "Redes Sociais" },
+  { campo: "total_divulgacoes", nome: "Divulgações" },
+  { campo: "total_ajustes", nome: "Ajustes Manuais" }
 ];
 
 function obterNumero(valor) {
@@ -116,6 +89,7 @@ function criarDetalhesCategorias(pontuacao) {
 
 function criarCardPontuacao(pontuacao) {
   const totalGeral = obterNumero(pontuacao.totalGeral);
+  const historicoUrl = `./membro-historico.html?user=${encodeURIComponent(pontuacao.user || "")}`;
 
   return `
     <article class="member-admin-card member-list-card">
@@ -136,6 +110,10 @@ function criarCardPontuacao(pontuacao) {
 
           ${criarDetalhesCategorias(pontuacao)}
         </details>
+
+        <a href="${historicoUrl}" class="btn secondary small">
+          Ver histórico
+        </a>
       </div>
     </article>
   `;

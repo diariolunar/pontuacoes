@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Painel | Central de Pontuação Lunar</title>
+  <title>Dashboard | Central Lunar</title>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
@@ -16,43 +16,55 @@
 
     <section class="dashboard-content">
       <div class="page-title">
-        <span class="tag">Painel administrativo</span>
-        <h1>Resumo da semana</h1>
+        <span class="tag">Painel Administrativo</span>
+
+        <h1>Dashboard</h1>
+
         <p>
-          Aqui a Leh poderá acompanhar os envios, conferir pontuações
-          e gerar o ranking geral.
+          Resumo geral da pontuação da semana atual no Projeto Lunar.
         </p>
       </div>
 
-      <div class="cards-grid">
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+      </div>
+
+      <div class="cards-grid dashboard-smart-grid">
         <article class="info-card">
-          <h2>Subs</h2>
-          <p id="totalSubs">0 envios</p>
+          <h2>Total de pontos da semana</h2>
+          <p id="totalPontosSemana">0</p>
         </article>
 
         <article class="info-card">
-          <h2>Leitura Lunar</h2>
-          <p>Em breve</p>
+          <h2>Membros pontuados</h2>
+          <p id="totalMembrosPontuados">0</p>
         </article>
 
         <article class="info-card">
-          <h2>Chuva de Estrelas</h2>
-          <p>Em breve</p>
+          <h2>Envios registrados</h2>
+          <p id="totalEnviosSemana">0</p>
         </article>
 
         <article class="info-card">
-          <h2>Ranking Geral</h2>
-          <p id="totalMembros">0 membros</p>
+          <h2>Membro com mais pontos</h2>
+          <p id="membroMaisPontos">—</p>
+        </article>
+
+        <article class="info-card">
+          <h2>Sub que mais pontuou</h2>
+          <p id="subMaisPontos">—</p>
         </article>
       </div>
 
       <div class="panel">
         <div class="panel-header">
-          <h2>Últimos envios dos subs</h2>
+          <h2>Últimos envios da semana</h2>
         </div>
 
         <div id="ultimosEnvios" class="list"></div>
       </div>
+
+      <p id="dashboardMessage" class="message"></p>
     </section>
   </main>
 

@@ -28,7 +28,7 @@
 
       <div class="panel">
         <div class="panel-header">
-          <h2>Novo ajuste</h2>
+          <h2>Novo ajuste individual</h2>
         </div>
 
         <form id="ajusteForm" class="form">
@@ -38,7 +38,6 @@
               type="text"
               id="nomeMembro"
               placeholder="Ex: Mayke Arrais"
-              required
             />
           </div>
 
@@ -48,13 +47,12 @@
               type="text"
               id="userMembro"
               placeholder="Ex: @RKymae"
-              required
             />
           </div>
 
           <div class="field">
             <label for="tipoAjuste">Tipo de ajuste</label>
-            <select id="tipoAjuste" required>
+            <select id="tipoAjuste">
               <option value="adicionar">Adicionar pontos</option>
               <option value="remover">Remover pontos</option>
             </select>
@@ -67,7 +65,6 @@
               id="pontosAjuste"
               placeholder="Ex: 50"
               min="1"
-              required
             />
           </div>
 
@@ -76,14 +73,58 @@
             <textarea
               id="motivoAjuste"
               placeholder="Ex: Pontuação duplicada na Leitura Lunar"
-              required
             ></textarea>
           </div>
 
-          <button type="submit" class="btn primary full">
-            Salvar ajuste
+          <button type="button" id="adicionarAjusteIndividualBtn" class="btn secondary full">
+            Adicionar ajuste individual à lista
           </button>
         </form>
+
+        <p id="ajusteIndividualMessage" class="message"></p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Enviar ajustes por lista</h2>
+        </div>
+
+        <div class="field">
+          <label for="listaAjustesTexto">Cole aqui a lista de ajustes</label>
+          <textarea
+            id="listaAjustesTexto"
+            placeholder="Formato simples:
+Mayke Arrais - RKymae - adicionar - 10 - Teste de bônus
+Leh - userdaleh - remover - 5 - Pontuação duplicada
+
+Formato em bloco:
+Nome: Mayke Arrais
+User: RKymae
+Tipo: adicionar
+Pontos: 10
+Motivo: Teste de bônus"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerListaAjustesBtn" class="btn secondary full">
+          Ler lista automaticamente
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Ajustes preparados para envio</h2>
+
+          <button type="button" id="limparAjustesPreparadosBtn" class="btn danger small">
+            Limpar preparados
+          </button>
+        </div>
+
+        <div id="ajustesPreparadosLista" class="members-admin-list list-mode"></div>
+
+        <button type="button" id="salvarAjustesBtn" class="btn primary full">
+          Salvar ajustes preparados
+        </button>
 
         <p id="ajusteMessage" class="message"></p>
       </div>
