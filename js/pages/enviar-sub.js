@@ -122,49 +122,25 @@ function normalizarTexto(texto) {
 }
 
 function extrairValor(linha) {
-  const partes = linha.split(":");
+  const partes = String(linha || "").split(":");
 
   if (partes.length < 2) return "";
 
   return partes.slice(1).join(":").trim();
 }
 
-function criarRegexCodigoSub(codigo) {
-  const partes = codigo.toUpperCase().split("-");
-  const numero = partes[1];
+function linhaTemCampo(linha, campo) {
+  const linhaNormalizada = normalizarTexto(linha);
 
-  return new RegExp(`(^|[^a-zA-Z0-9])a\\s*-?\\s*${numero}([^0-9]|$)`, "i");
+  const regex = new RegExp(`${campo}\\s*\\.?\\s*:`, "i");
+
+  return regex.test(linhaNormalizada);
 }
 
-function reconhecerSubPorCodigo(texto) {
-  const textoNormalizado = normalizarTexto(texto);
+function criarRegexCodigoSub(codigo) {
+  const numero = codigo.toUpperCase().replace("A-", "");
 
-  const trechoInicial = textoNormalizado
-    .split(/\r?\n/)
-    .slice(0, 16)
-    .join(" ");
-
-  const subsOrdenados = [...mapaSubs].sort((a, b) => {
-    return Number(b.codigo.replace("A-", "")) - Number(a.codigo.replace("A-", ""));
-  });
-
-  for (const sub of subsOrdenados) {
-    const regex = criarRegexCodigoSub(sub.codigo);
-
-    if (regex.test(trechoInicial)) {
-      return sub;
-    }
-  }
-
-  for (const sub of subsOrdenados) {
-    const regex = criarRegexCodigoSub(sub.codigo);
-
-    if (regex.test(textoNormalizado)) {
-      return sub;
-    }
-  }
-
-  return null;
+  return new RegExp(`(^|[^a-zA-Z0-9])a\\s*-?\\s*${numero}([^0-9]|$)`, "i");
 }
 
 function reconhecerSubPorNome(texto) {
@@ -172,7 +148,7 @@ function reconhecerSubPorNome(texto) {
 
   const trechoInicial = textoNormalizado
     .split(/\r?\n/)
-    .slice(0, 16)
+    .slice(0, 18)
     .join(" ");
 
   for (const sub of mapaSubs) {
@@ -198,8 +174,39 @@ function reconhecerSubPorNome(texto) {
   return null;
 }
 
+function reconhecerSubPorCodigo(texto) {
+  const textoNormalizado = normalizarTexto(texto);
+
+  const trechoInicial = textoNormalizado
+    .split(/\r?\n/)
+    .slice(0, 18)
+    .join(" ");
+
+  const subsOrdenados = [...mapaSubs].sort((a, b) => {
+    return Number(b.codigo.replace("A-", "")) - Number(a.codigo.replace("A-", ""));
+  });
+
+  for (const sub of subsOrdenados) {
+    const regex = criarRegexCodigoSub(sub.codigo);
+
+    if (regex.test(trechoInicial)) {
+      return sub;
+    }
+  }
+
+  for (const sub of subsOrdenados) {
+    const regex = criarRegexCodigoSub(sub.codigo);
+
+    if (regex.test(textoNormalizado)) {
+      return sub;
+    }
+  }
+
+  return null;
+}
+
 function reconhecerSub(texto) {
-  return reconhecerSubPorCodigo(texto) || reconhecerSubPorNome(texto);
+  return reconhecerSubPorNome(texto) || reconhecerSubPorCodigo(texto);
 }
 
 function preencherSubAutomaticamente(texto) {
@@ -287,11 +294,7 @@ function separarBlocosDeMembros(texto) {
   let blocoAtual = [];
 
   for (const linhaOriginal of linhas) {
-    const linhaNormalizada = normalizarTexto(linhaOriginal);
-
-    const ehLinhaDeNome =
-      linhaNormalizada.includes("nome:") ||
-      linhaNormalizada.includes("nome :");
+    const ehLinhaDeNome = linhaTemCampo(linhaOriginal, "nome");
 
     if (ehLinhaDeNome) {
       if (blocoAtual.length > 0) {
@@ -314,27 +317,45 @@ function separarBlocosDeMembros(texto) {
   return blocos;
 }
 
+function extrairPontosDasObservacoes(bloco) {
+  const matches = String(bloco || "").match(/-\s*\d+/g);
+
+  if (!matches) {
+    return 0;
+  }
+
+  return matches.reduce((total, item) => {
+    return total + converterPontuacao(item);
+  }, 0);
+}
+
 function extrairMembroDoBloco(bloco) {
   const linhas = bloco.split(/\r?\n/);
 
   let nome = "";
   let user = "";
-  let pontos = 0;
+  let pontos = null;
 
   for (const linhaOriginal of linhas) {
-    const linhaNormalizada = normalizarTexto(linhaOriginal);
-
-    if (linhaNormalizada.includes("nome:") || linhaNormalizada.includes("nome :")) {
+    if (linhaTemCampo(linhaOriginal, "nome")) {
       nome = extrairValor(linhaOriginal);
     }
 
-    if (linhaNormalizada.includes("user:") || linhaNormalizada.includes("user :")) {
+    if (linhaTemCampo(linhaOriginal, "user")) {
       user = normalizarUser(extrairValor(linhaOriginal));
     }
 
-    if (linhaNormalizada.includes("pontos:") || linhaNormalizada.includes("pontos :")) {
-      pontos = converterPontuacao(extrairValor(linhaOriginal));
+    if (linhaTemCampo(linhaOriginal, "pontos")) {
+      const valorExtraido = extrairValor(linhaOriginal);
+
+      if (valorExtraido !== "") {
+        pontos = converterPontuacao(valorExtraido);
+      }
     }
+  }
+
+  if (pontos === null) {
+    pontos = extrairPontosDasObservacoes(bloco);
   }
 
   if (!nome || !user) {
