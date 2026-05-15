@@ -1,7 +1,6 @@
 import { db } from "../config/firebase.js";
 
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -20,10 +19,6 @@ import {
   criarIdSeguro,
   normalizarUser
 } from "../core/utils.js";
-
-import {
-  buscarOuCriarMembro
-} from "./membros.service.js";
 
 function ordenarPorCriadoEmDesc(lista) {
   return [...lista].sort((a, b) => {
@@ -618,6 +613,39 @@ export async function limparPontuacoesCategoriaSemana({
 
   return {
     registrosRemovidos: registrosSnapshot.docs.length,
+    enviosRemovidos: enviosSnapshot.docs.length
+  };
+}
+
+export async function limparPontuacoesSubsSemana({
+  semana
+}) {
+  if (!semana) {
+    throw new Error("Semana não informada.");
+  }
+
+  const batch = writeBatch(db);
+
+  const pontuacoesSnapshot = await getDocs(
+    query(collection(db, "pontuacoesSubs"), where("semana", "==", semana))
+  );
+
+  for (const documento of pontuacoesSnapshot.docs) {
+    batch.delete(doc(db, "pontuacoesSubs", documento.id));
+  }
+
+  const enviosSnapshot = await getDocs(
+    query(collection(db, "enviosSubs"), where("semana", "==", semana))
+  );
+
+  for (const documento of enviosSnapshot.docs) {
+    batch.delete(doc(db, "enviosSubs", documento.id));
+  }
+
+  await batch.commit();
+
+  return {
+    registrosRemovidos: pontuacoesSnapshot.docs.length,
     enviosRemovidos: enviosSnapshot.docs.length
   };
 }
