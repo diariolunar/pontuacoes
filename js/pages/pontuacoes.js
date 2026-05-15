@@ -18,47 +18,125 @@ const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
 
 let pontuacoesCarregadas = [];
 
-function obterTotalCategoria(pontuacao, campo) {
-  return Number(pontuacao[campo] || 0);
+const categorias = [
+  {
+    campo: "total_subs",
+    nome: "Subs"
+  },
+  {
+    campo: "total_leituraLunar",
+    nome: "Leitura Lunar"
+  },
+  {
+    campo: "total_chuvaEstrelas",
+    nome: "Chuva de Estrelas"
+  },
+  {
+    campo: "total_adms",
+    nome: "Pontuação dos ADMs"
+  },
+  {
+    campo: "total_diarioLunar",
+    nome: "Diário Lunar"
+  },
+  {
+    campo: "total_ascensao",
+    nome: "Ascensão"
+  },
+  {
+    campo: "total_redesSociais",
+    nome: "Redes Sociais"
+  },
+  {
+    campo: "total_divulgacoes",
+    nome: "Divulgações"
+  },
+  {
+    campo: "total_ajustes",
+    nome: "Ajustes Manuais"
+  }
+];
+
+function obterNumero(valor) {
+  const numero = Number(valor || 0);
+
+  if (Number.isNaN(numero)) {
+    return 0;
+  }
+
+  return numero;
+}
+
+function formatarPontos(valor) {
+  const numero = obterNumero(valor);
+
+  if (numero > 0) {
+    return `+${numero}`;
+  }
+
+  return String(numero);
+}
+
+function obterCategoriasComPontos(pontuacao) {
+  return categorias
+    .map((categoria) => {
+      return {
+        nome: categoria.nome,
+        pontos: obterNumero(pontuacao[categoria.campo])
+      };
+    })
+    .filter((categoria) => categoria.pontos !== 0);
+}
+
+function criarDetalhesCategorias(pontuacao) {
+  const categoriasComPontos = obterCategoriasComPontos(pontuacao);
+
+  if (categoriasComPontos.length === 0) {
+    return `
+      <div class="point-breakdown">
+        <span>Nenhuma categoria com pontos registrada ainda.</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="point-breakdown">
+      ${categoriasComPontos
+        .map((categoria) => {
+          return `
+            <span>
+              ${escaparHtml(categoria.nome)}: ${escaparHtml(formatarPontos(categoria.pontos))}
+            </span>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
 }
 
 function criarCardPontuacao(pontuacao) {
-  const totalSubs = obterTotalCategoria(pontuacao, "total_subs");
-  const totalLeitura = obterTotalCategoria(pontuacao, "total_leituraLunar");
-  const totalChuva = obterTotalCategoria(pontuacao, "total_chuvaEstrelas");
-  const totalAdms = obterTotalCategoria(pontuacao, "total_adms");
-  const totalDiario = obterTotalCategoria(pontuacao, "total_diarioLunar");
-  const totalAscensao = obterTotalCategoria(pontuacao, "total_ascensao");
-  const totalRedes = obterTotalCategoria(pontuacao, "total_redesSociais");
-  const totalDivulgacoes = obterTotalCategoria(pontuacao, "total_divulgacoes");
-  const totalAjustes = obterTotalCategoria(pontuacao, "total_ajustes");
+  const totalGeral = obterNumero(pontuacao.totalGeral);
 
   return `
-    <article class="point-card">
-      <div class="point-card-header">
+    <article class="member-admin-card member-list-card">
+      <div class="member-admin-header">
         <div>
           <h2>${escaparHtml(pontuacao.nome || "Sem nome")}</h2>
           <p>${escaparHtml(pontuacao.user || "")}</p>
         </div>
-
-        <strong>${Number(pontuacao.totalGeral || 0)} pts</strong>
       </div>
 
-      <details class="point-details">
-        <summary>Ver detalhes</summary>
-
-        <div class="point-breakdown">
-          <span>Subs: ${totalSubs}</span>
-          <span>Leitura Lunar: ${totalLeitura}</span>
-          <span>Chuva de Estrelas: ${totalChuva}</span>
-          <span>ADMs: ${totalAdms}</span>
-          <span>Diário Lunar: ${totalDiario}</span>
-          <span>Ascensão: ${totalAscensao}</span>
-          <span>Redes: ${totalRedes}</span>
-          <span>Divulgações: ${totalDivulgacoes}</span>
-          <span>Ajustes: ${totalAjustes}</span>
+      <div class="point-card-content">
+        <div class="point-card-header">
+          <strong>${totalGeral} pts</strong>
         </div>
-      </details>
+
+        <details class="point-details">
+          <summary>Ver categorias pontuadas</summary>
+
+          ${criarDetalhesCategorias(pontuacao)}
+        </details>
+      </div>
     </article>
   `;
 }

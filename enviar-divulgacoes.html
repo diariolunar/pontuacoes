@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Enviar Divulgações | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Envio de pontuação</span>
+
+      <h1>Enviar Pontuação de Divulgações</h1>
+
+      <p>
+        Cole a lista com nome, user, pontos e descrição da divulgação realizada.
+      </p>
+
+      <form id="categoriaForm" class="form">
+        <div class="field">
+          <label for="listaTexto">Cole aqui a lista</label>
+          <textarea
+            id="listaTexto"
+            placeholder="Ex:
+Mayke Arrais - RKymae - 40 - Divulgação no WhatsApp
+Anna - userdaanna - 60 - Divulgação no Instagram"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerListaBtn" class="btn secondary full">
+          Ler lista automaticamente
+        </button>
+
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Membros encontrados</h2>
+
+            <button type="button" id="addMemberBtn" class="btn secondary small">
+              + Adicionar membro
+            </button>
+          </div>
+
+          <div id="membersList"></div>
+        </div>
+
+        <button type="submit" class="btn primary full">
+          Enviar Divulgações
+        </button>
+      </form>
+
+      <p id="categoriaMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-divulgacoes.js"></script>
+</body>
+</html>

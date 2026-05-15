@@ -118,6 +118,56 @@ export async function registrarPontuacaoFixa({
   return envioRef.id;
 }
 
+export async function registrarPontuacaoVariavel({
+  semana,
+  membros,
+  categoria,
+  colecao,
+  origem
+}) {
+  const envioRef = await addDoc(collection(db, `envios_${colecao}`), {
+    semana,
+    categoria,
+    origem,
+    totalMembros: membros.length,
+    criadoEm: serverTimestamp()
+  });
+
+  for (const membro of membros) {
+    const userNormalizado = normalizarUser(membro.user);
+    const pontos = Number(membro.pontos || 0);
+    const descricao = membro.descricao || "";
+
+    await buscarOuCriarMembro({
+      nome: membro.nome,
+      user: userNormalizado
+    });
+
+    await addDoc(collection(db, colecao), {
+      envioId: envioRef.id,
+      semana,
+      categoria,
+      origem,
+      nome: membro.nome,
+      user: userNormalizado,
+      pontos,
+      descricao,
+      criadoEm: serverTimestamp()
+    });
+
+    await somarPontuacaoGeral({
+      semana,
+      nome: membro.nome,
+      user: userNormalizado,
+      categoria,
+      pontos,
+      origem: descricao ? `${origem}: ${descricao}` : origem
+    });
+  }
+
+  return envioRef.id;
+}
+
 export async function registrarLeituraLunar({
   semana,
   membros

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Enviar Redes Sociais | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Envio de pontuação</span>
+
+      <h1>Enviar Pontuação de Redes Sociais</h1>
+
+      <p>
+        Cole a lista com nome, user, pontos e tipo de interação nas redes sociais.
+      </p>
+
+      <form id="categoriaForm" class="form">
+        <div class="field">
+          <label for="listaTexto">Cole aqui a lista</label>
+          <textarea
+            id="listaTexto"
+            placeholder="Ex:
+Mayke Arrais - RKymae - 20 - Comentário no Instagram
+Leh - userdaleh - 30 - Compartilhamento de post"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerListaBtn" class="btn secondary full">
+          Ler lista automaticamente
+        </button>
+
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Membros encontrados</h2>
+
+            <button type="button" id="addMemberBtn" class="btn secondary small">
+              + Adicionar membro
+            </button>
+          </div>
+
+          <div id="membersList"></div>
+        </div>
+
+        <button type="submit" class="btn primary full">
+          Enviar Redes Sociais
+        </button>
+      </form>
+
+      <p id="categoriaMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-redes-sociais.js"></script>
+</body>
+</html>

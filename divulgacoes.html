@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Divulgações | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel da Leh</span>
+
+        <h1>Divulgações</h1>
+
+        <p>Confira os registros de divulgações da semana atual.</p>
+      </div>
+
+      <div class="page-actions">
+        <a href="./enviar-divulgacoes.html" class="btn secondary">Enviar nova lista</a>
+
+        <button type="button" id="limparSemanaBtn" class="btn danger">
+          Limpar lista da semana
+        </button>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalMembrosTexto">Registros encontrados: 0</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Registros da semana</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>User</th>
+                <th>Pontos</th>
+                <th>Motivo/atividade</th>
+              </tr>
+            </thead>
+
+            <tbody id="categoriaTabela"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p id="categoriaMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/divulgacoes.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Enviar Pontuação dos ADMs | Central Lunar</title>
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Envio de pontuação</span>
+
+      <h1>Enviar Pontuação dos ADMs</h1>
+
+      <p>
+        Cole a lista com nome, user, pontos e motivo/atividade. O sistema somará os pontos automaticamente na semana atual.
+      </p>
+
+      <form id="categoriaForm" class="form">
+        <div class="field">
+          <label for="listaTexto">Cole aqui a lista</label>
+          <textarea
+            id="listaTexto"
+            placeholder="Ex:
+Leh - userdaleh - 120 - Organização da semana
+Anna - userdaanna - 80 - Apoio nos subs
+
+Ou:
+Nome: Leh
+User: userdaleh
+Pontos: 120
+Motivo: Organização da semana"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerListaBtn" class="btn secondary full">
+          Ler lista automaticamente
+        </button>
+
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Membros encontrados</h2>
+
+            <button type="button" id="addMemberBtn" class="btn secondary small">
+              + Adicionar membro
+            </button>
+          </div>
+
+          <div id="membersList"></div>
+        </div>
+
+        <button type="submit" class="btn primary full">
+          Enviar Pontuação dos ADMs
+        </button>
+      </form>
+
+      <p id="categoriaMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-adms.js"></script>
+</body>
+</html>
