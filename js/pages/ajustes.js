@@ -51,7 +51,7 @@ function normalizarTexto(texto) {
 }
 
 function extrairValor(linha) {
-  const partes = linha.split(":");
+  const partes = String(linha || "").split(":");
 
   if (partes.length < 2) return "";
 
@@ -90,6 +90,31 @@ function formatarPontos(pontos) {
   return String(numero);
 }
 
+function interpretarPontuacaoComSinal(valor) {
+  const texto = String(valor || "")
+    .normalize("NFKC")
+    .replace(",", ".")
+    .trim();
+
+  const match = texto.match(/([+-])\s*(\d+(?:\.\d+)?)/);
+
+  if (!match) {
+    return null;
+  }
+
+  const sinal = match[1];
+  const pontos = Math.abs(Number(match[2] || 0));
+
+  if (!pontos || Number.isNaN(pontos)) {
+    return null;
+  }
+
+  return {
+    tipo: sinal === "-" ? "remover" : "adicionar",
+    pontos
+  };
+}
+
 function criarCardAjustePreparado(ajuste, index) {
   return `
     <article class="member-admin-card member-list-card adjustment-card" data-index="${index}">
@@ -115,7 +140,7 @@ function criarCardAjustePreparado(ajuste, index) {
         </div>
 
         <div class="field">
-          <label>Motivo</label>
+          <label>Motivo opcional</label>
           <input type="text" class="prepared-motivo" value="${escaparHtml(ajuste.motivo || "")}" />
         </div>
 
@@ -174,14 +199,49 @@ function renderizarAjustesPreparados() {
 
 function adicionarAjustePreparado(ajuste) {
   ajustesPreparados.push({
-    nome: ajuste.nome.trim(),
-    user: normalizarUser(ajuste.user),
-    tipo: normalizarTipo(ajuste.tipo),
+    nome: String(ajuste.nome || "").trim(),
+    user: normalizarUser(ajuste.user || ""),
+    tipo: normalizarTipo(ajuste.tipo || "adicionar"),
     pontos: Math.abs(Number(ajuste.pontos || 0)),
-    motivo: ajuste.motivo.trim()
+    motivo: String(ajuste.motivo || "").trim()
   });
 
   renderizarAjustesPreparados();
+}
+
+function lerFormatoRapido(texto) {
+  const linhas = texto
+    .split(/\r?\n/)
+    .map((linha) => linha.trim())
+    .filter(Boolean);
+
+  const ajustes = [];
+
+  for (const linha of linhas) {
+    const match = linha.match(/^(.+?)\s*-\s*(@?\S+)\s+([+-]\s*\d+(?:[.,]\d+)?)\s*$/i);
+
+    if (!match) {
+      continue;
+    }
+
+    const nome = match[1].trim();
+    const user = match[2].trim();
+    const pontuacao = interpretarPontuacaoComSinal(match[3]);
+
+    if (!pontuacao) {
+      continue;
+    }
+
+    ajustes.push({
+      nome,
+      user,
+      tipo: pontuacao.tipo,
+      pontos: pontuacao.pontos,
+      motivo: ""
+    });
+  }
+
+  return ajustes;
 }
 
 function lerFormatoLinhaSimples(texto) {
@@ -209,19 +269,38 @@ function lerFormatoLinhaSimples(texto) {
 
     partes = partes.map((parte) => parte.trim()).filter(Boolean);
 
-    if (partes.length >= 5) {
+    if (partes.length >= 3) {
+      const nome = partes[0];
+      const user = partes[1];
+
+      const possivelSinal = interpretarPontuacaoComSinal(partes[2]);
+
+      if (possivelSinal) {
+        ajustes.push({
+          nome,
+          user,
+          tipo: possivelSinal.tipo,
+          pontos: possivelSinal.pontos,
+          motivo: partes.slice(3).join(" - ")
+        });
+
+        continue;
+      }
+    }
+
+    if (partes.length >= 4) {
       ajustes.push({
         nome: partes[0],
         user: partes[1],
         tipo: normalizarTipo(partes[2]),
-        pontos: Number(partes[3] || 0),
+        pontos: Math.abs(Number(partes[3] || 0)),
         motivo: partes.slice(4).join(" - ")
       });
     }
   }
 
   return ajustes.filter((ajuste) => {
-    return ajuste.nome && ajuste.user && ajuste.pontos > 0 && ajuste.motivo;
+    return ajuste.nome && ajuste.user && ajuste.pontos > 0;
   });
 }
 
@@ -241,13 +320,15 @@ function lerFormatoBloco(texto) {
   };
 
   function fecharAtual() {
-    if (atual.nome && atual.user && atual.pontos && atual.motivo) {
+    if (atual.nome && atual.user && atual.pontos) {
+      const pontuacaoComSinal = interpretarPontuacaoComSinal(atual.pontos);
+
       ajustes.push({
         nome: atual.nome,
         user: atual.user,
-        tipo: normalizarTipo(atual.tipo),
-        pontos: Number(atual.pontos || 0),
-        motivo: atual.motivo
+        tipo: pontuacaoComSinal ? pontuacaoComSinal.tipo : normalizarTipo(atual.tipo),
+        pontos: pontuacaoComSinal ? pontuacaoComSinal.pontos : Math.abs(Number(atual.pontos || 0)),
+        motivo: atual.motivo || ""
       });
     }
 
@@ -295,6 +376,26 @@ function lerFormatoBloco(texto) {
   fecharAtual();
 
   return ajustes.filter((ajuste) => ajuste.pontos > 0);
+}
+
+function removerDuplicadosExatos(ajustes) {
+  const mapa = new Map();
+
+  for (const ajuste of ajustes) {
+    const chave = [
+      normalizarTexto(ajuste.nome),
+      normalizarUser(ajuste.user),
+      ajuste.tipo,
+      ajuste.pontos,
+      normalizarTexto(ajuste.motivo || "")
+    ].join("|");
+
+    if (!mapa.has(chave)) {
+      mapa.set(chave, ajuste);
+    }
+  }
+
+  return Array.from(mapa.values());
 }
 
 function renderizarAjustes(ajustes) {
@@ -354,10 +455,10 @@ adicionarAjusteIndividualBtn.addEventListener("click", () => {
   const pontos = Number(pontosAjuste.value || 0);
   const motivo = motivoAjuste.value.trim();
 
-  if (!nome || !user || !tipo || pontos <= 0 || !motivo) {
+  if (!nome || !user || !tipo || pontos <= 0) {
     mostrarMensagem(
       ajusteIndividualMessage,
-      "Preencha nome, user, tipo, pontos e motivo antes de adicionar.",
+      "Preencha nome, user, tipo e pontos antes de adicionar.",
       "error"
     );
 
@@ -394,14 +495,20 @@ lerListaAjustesBtn.addEventListener("click", () => {
     return;
   }
 
+  const ajustesRapidos = lerFormatoRapido(texto);
   const ajustesLinha = lerFormatoLinhaSimples(texto);
   const ajustesBloco = lerFormatoBloco(texto);
-  const ajustes = [...ajustesLinha, ...ajustesBloco];
+
+  const ajustes = removerDuplicadosExatos([
+    ...ajustesRapidos,
+    ...ajustesLinha,
+    ...ajustesBloco
+  ]);
 
   if (ajustes.length === 0) {
     mostrarMensagem(
       ajusteMessage,
-      "Não consegui encontrar ajustes. Use: Nome - User - Tipo - Pontos - Motivo",
+      "Não consegui encontrar ajustes. Use: Mayke - @RKymae -20 ou Mayke - @RKymae +20",
       "error"
     );
 
@@ -432,7 +539,7 @@ salvarAjustesBtn.addEventListener("click", async () => {
   sincronizarAjustesPreparadosComTela();
 
   const ajustesValidos = ajustesPreparados.filter((ajuste) => {
-    return ajuste.nome && ajuste.user && ajuste.tipo && ajuste.pontos > 0 && ajuste.motivo;
+    return ajuste.nome && ajuste.user && ajuste.tipo && ajuste.pontos > 0;
   });
 
   if (ajustesValidos.length === 0) {
