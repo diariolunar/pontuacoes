@@ -207,22 +207,21 @@ export async function somarPontuacaoGeral({
   const pontuacaoSnap = await getDoc(pontuacaoRef);
 
   const campoCategoria = `total_${categoria}`;
+  const pontosNumericos = Number(pontos || 0);
 
   if (!pontuacaoSnap.exists()) {
     await setDoc(pontuacaoRef, {
       semana,
       nome,
       user: userNormalizado,
-      [campoCategoria]: Number(pontos || 0),
-      totalGeral: Number(pontos || 0),
+      [campoCategoria]: pontosNumericos,
+      totalGeral: pontosNumericos,
       atualizadoEm: serverTimestamp()
     });
   } else {
     await updateDoc(pontuacaoRef, {
-      nome,
-      user: userNormalizado,
-      [campoCategoria]: increment(Number(pontos || 0)),
-      totalGeral: increment(Number(pontos || 0)),
+      [campoCategoria]: increment(pontosNumericos),
+      totalGeral: increment(pontosNumericos),
       atualizadoEm: serverTimestamp()
     });
   }
@@ -232,7 +231,7 @@ export async function somarPontuacaoGeral({
     nome,
     user: userNormalizado,
     categoria,
-    pontos: Number(pontos || 0),
+    pontos: pontosNumericos,
     origem,
     criadoEm: serverTimestamp()
   });
