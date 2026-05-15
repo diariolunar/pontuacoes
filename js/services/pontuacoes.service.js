@@ -34,6 +34,18 @@ function ordenarPorTotalDesc(lista) {
   });
 }
 
+function calcularTotalGeralSeguro(totalAtual, pontosRecebidos) {
+  const atual = Number(totalAtual || 0);
+  const pontos = Number(pontosRecebidos || 0);
+  const novoTotal = atual + pontos;
+
+  if (novoTotal < 0) {
+    return 0;
+  }
+
+  return novoTotal;
+}
+
 async function prepararMembroNoBatch(batch, { nome, user }) {
   const userNormalizado = normalizarUser(user);
   const membroId = criarIdSeguro(userNormalizado);
@@ -68,21 +80,29 @@ async function somarPontuacaoGeralNoBatch(batch, {
   const pontosNumericos = Number(pontos || 0);
 
   if (!pontuacaoSnap.exists()) {
+    const totalGeralSeguro = calcularTotalGeralSeguro(0, pontosNumericos);
+
     batch.set(pontuacaoRef, {
       semana,
       nome,
       user: userNormalizado,
       [campoCategoria]: pontosNumericos,
-      totalGeral: pontosNumericos,
+      totalGeral: totalGeralSeguro,
       atualizadoEm: serverTimestamp()
     });
-  } else {
-    batch.update(pontuacaoRef, {
-      [campoCategoria]: increment(pontosNumericos),
-      totalGeral: increment(pontosNumericos),
-      atualizadoEm: serverTimestamp()
-    });
+
+    return;
   }
+
+  const dadosAtuais = pontuacaoSnap.data();
+  const totalAtual = Number(dadosAtuais.totalGeral || 0);
+  const totalGeralSeguro = calcularTotalGeralSeguro(totalAtual, pontosNumericos);
+
+  batch.update(pontuacaoRef, {
+    [campoCategoria]: increment(pontosNumericos),
+    totalGeral: totalGeralSeguro,
+    atualizadoEm: serverTimestamp()
+  });
 }
 
 function adicionarHistoricoNoBatch(batch, {
