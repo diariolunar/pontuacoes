@@ -2,7 +2,6 @@ import { db } from "../config/firebase.js";
 
 import {
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -636,6 +635,48 @@ export async function limparPontuacoesSubsSemana({
 
   const enviosSnapshot = await getDocs(
     query(collection(db, "enviosSubs"), where("semana", "==", semana))
+  );
+
+  for (const documento of enviosSnapshot.docs) {
+    batch.delete(doc(db, "enviosSubs", documento.id));
+  }
+
+  await batch.commit();
+
+  return {
+    registrosRemovidos: pontuacoesSnapshot.docs.length,
+    enviosRemovidos: enviosSnapshot.docs.length
+  };
+}
+
+export async function limparPontuacoesSubSemana({
+  semana,
+  sub
+}) {
+  if (!semana || !sub) {
+    throw new Error("Semana ou sub não informado.");
+  }
+
+  const batch = writeBatch(db);
+
+  const pontuacoesSnapshot = await getDocs(
+    query(
+      collection(db, "pontuacoesSubs"),
+      where("semana", "==", semana),
+      where("sub", "==", sub)
+    )
+  );
+
+  for (const documento of pontuacoesSnapshot.docs) {
+    batch.delete(doc(db, "pontuacoesSubs", documento.id));
+  }
+
+  const enviosSnapshot = await getDocs(
+    query(
+      collection(db, "enviosSubs"),
+      where("semana", "==", semana),
+      where("sub", "==", sub)
+    )
   );
 
   for (const documento of enviosSnapshot.docs) {
