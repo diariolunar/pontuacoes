@@ -6,6 +6,8 @@
 
   <title>Detalhes do Sub | Central Lunar</title>
 
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
@@ -20,23 +22,34 @@
 
         <h1 id="subTitulo">Carregando...</h1>
 
-        <p id="subDescricao">
-          Consulte os membros e pontuações enviadas por este sub na semana atual.
+        <p>
+          Confira os membros e pontos registrados neste sub durante a semana atual.
         </p>
       </div>
 
       <div class="page-actions">
-        <a href="./subs.html" class="btn secondary">Voltar para Subs</a>
+        <a href="./subs.html" class="btn secondary">
+          Voltar para Subs
+        </a>
+
+        <a href="./enviar-sub.html" class="btn secondary">
+          Enviar nova ficha
+        </a>
+
+        <button type="button" id="limparSubSemanaBtn" class="btn danger">
+          Limpar este sub da semana
+        </button>
       </div>
 
       <div class="summary-line">
         <span id="semanaAtualTexto">Semana atual: carregando...</span>
-        <span id="totalMembrosTexto">Membros encontrados: 0</span>
+        <span id="totalMembrosTexto">Membros registrados: 0</span>
+        <span id="totalPontosTexto">Total de pontos: 0</span>
       </div>
 
       <div class="panel">
         <div class="panel-header">
-          <h2>Membros pontuados</h2>
+          <h2>Membros registrados</h2>
         </div>
 
         <div class="table-wrap">
@@ -49,12 +62,12 @@
               </tr>
             </thead>
 
-            <tbody id="subMembrosTabela"></tbody>
+            <tbody id="subTabela"></tbody>
           </table>
         </div>
       </div>
 
-      <p id="subDetalhesMessage" class="message"></p>
+      <p id="subMessage" class="message"></p>
     </section>
   </main>
 
