@@ -19,90 +19,104 @@ const submitBtn = subForm.querySelector('button[type="submit"]');
 
 const mapaSubs = [
   {
+    codigo: "A-1",
     valor: "A-1 Chama Eterna",
     desativado: false,
-    chaves: ["a-1", "a1", "chama eterna"]
+    chaves: ["chama eterna"]
   },
   {
+    codigo: "A-2",
     valor: "A-2 Página Livre",
     desativado: false,
-    chaves: ["a-2", "a2", "pagina livre", "página livre"]
+    chaves: ["pagina livre", "página livre"]
   },
   {
+    codigo: "A-3",
     valor: "A-3 Entre Nós",
     desativado: false,
-    chaves: ["a-3", "a3", "entre nos", "entre nós"]
+    chaves: ["entre nos", "entre nós"]
   },
   {
+    codigo: "A-4",
     valor: "A-4 Sussurros da Aurora",
     desativado: false,
-    chaves: ["a-4", "a4", "sussurros da aurora"]
+    chaves: ["sussurros da aurora"]
   },
   {
+    codigo: "A-5",
     valor: "A-5 Crepúsculo",
     desativado: false,
-    chaves: ["a-5", "a5", "crepusculo", "crepúsculo"]
+    chaves: ["crepusculo", "crepúsculo"]
   },
   {
+    codigo: "A-6",
     valor: "A-6 Trono Profano",
     desativado: false,
-    chaves: ["a-6", "a6", "trono profano"]
+    chaves: ["trono profano"]
   },
   {
+    codigo: "A-7",
     valor: "A-7 Margens de Mundos",
     desativado: false,
-    chaves: ["a-7", "a7", "margens de mundos"]
+    chaves: ["margens de mundos"]
   },
   {
+    codigo: "A-8",
     valor: "A-8 Ordem do Eclipse",
     desativado: false,
-    chaves: ["a-8", "a8", "ordem do eclipse"]
+    chaves: ["ordem do eclipse"]
   },
   {
+    codigo: "A-9",
     valor: "A-9 Cicatrizes Literárias",
     desativado: false,
-    chaves: ["a-9", "a9", "cicatrizes literarias", "cicatrizes literárias"]
+    chaves: ["cicatrizes literarias", "cicatrizes literárias"]
   },
   {
+    codigo: "A-10",
     valor: "A-10 Quasar",
     desativado: false,
-    chaves: ["a-10", "a10", "quasar"]
+    chaves: ["quasar"]
   },
   {
+    codigo: "A-11",
     valor: "A-11 DESATIVADO",
     desativado: true,
-    chaves: ["a-11", "a11"]
+    chaves: []
   },
   {
+    codigo: "A-12",
     valor: "A-12 Estrela Polar",
     desativado: false,
-    chaves: ["a-12", "a12", "estrela polar"]
+    chaves: ["estrela polar"]
   },
   {
+    codigo: "A-13",
     valor: "A-13 Luar Profano",
     desativado: false,
-    chaves: ["a-13", "a13", "luar profano"]
+    chaves: ["luar profano"]
   },
   {
+    codigo: "A-14",
     valor: "A-14 Fragmentos da Noite",
     desativado: false,
-    chaves: ["a-14", "a14", "fragmentos da noite"]
+    chaves: ["fragmentos da noite"]
   },
   {
+    codigo: "A-15",
     valor: "A-15 Véu Escarlate",
     desativado: false,
-    chaves: ["a-15", "a15", "veu escarlate", "véu escarlate"]
+    chaves: ["veu escarlate", "véu escarlate"]
   }
 ];
 
 function normalizarTexto(texto) {
-  return texto
+  return String(texto || "")
     .normalize("NFKC")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[—–]/g, "-")
-    .replace(/[^\w\s@\-:]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -115,31 +129,65 @@ function extrairValor(linha) {
   return partes.slice(1).join(":").trim();
 }
 
-function reconhecerSub(texto) {
+function criarRegexCodigoSub(codigo) {
+  const partes = codigo.toUpperCase().split("-");
+  const numero = partes[1];
+
+  return new RegExp(`(^|[^a-zA-Z0-9])a\\s*-?\\s*${numero}([^0-9]|$)`, "i");
+}
+
+function reconhecerSubPorCodigo(texto) {
   const textoNormalizado = normalizarTexto(texto);
 
-  const linhaInicial = texto
+  const trechoInicial = textoNormalizado
     .split(/\r?\n/)
-    .slice(0, 12)
+    .slice(0, 16)
     .join(" ");
 
-  const linhaInicialNormalizada = normalizarTexto(linhaInicial);
+  const subsOrdenados = [...mapaSubs].sort((a, b) => {
+    return Number(b.codigo.replace("A-", "")) - Number(a.codigo.replace("A-", ""));
+  });
+
+  for (const sub of subsOrdenados) {
+    const regex = criarRegexCodigoSub(sub.codigo);
+
+    if (regex.test(trechoInicial)) {
+      return sub;
+    }
+  }
+
+  for (const sub of subsOrdenados) {
+    const regex = criarRegexCodigoSub(sub.codigo);
+
+    if (regex.test(textoNormalizado)) {
+      return sub;
+    }
+  }
+
+  return null;
+}
+
+function reconhecerSubPorNome(texto) {
+  const textoNormalizado = normalizarTexto(texto);
+
+  const trechoInicial = textoNormalizado
+    .split(/\r?\n/)
+    .slice(0, 16)
+    .join(" ");
 
   for (const sub of mapaSubs) {
-    const encontrouNaLinhaInicial = sub.chaves.some((chave) => {
-      const chaveNormalizada = normalizarTexto(chave);
-      return linhaInicialNormalizada.includes(chaveNormalizada);
+    const encontrouNoInicio = sub.chaves.some((chave) => {
+      return trechoInicial.includes(normalizarTexto(chave));
     });
 
-    if (encontrouNaLinhaInicial) {
+    if (encontrouNoInicio) {
       return sub;
     }
   }
 
   for (const sub of mapaSubs) {
     const encontrouNoTexto = sub.chaves.some((chave) => {
-      const chaveNormalizada = normalizarTexto(chave);
-      return textoNormalizado.includes(chaveNormalizada);
+      return textoNormalizado.includes(normalizarTexto(chave));
     });
 
     if (encontrouNoTexto) {
@@ -148,6 +196,10 @@ function reconhecerSub(texto) {
   }
 
   return null;
+}
+
+function reconhecerSub(texto) {
+  return reconhecerSubPorCodigo(texto) || reconhecerSubPorNome(texto);
 }
 
 function preencherSubAutomaticamente(texto) {
@@ -193,8 +245,7 @@ function criarLinhaMembro(membro = {}) {
       type="number" 
       class="member-points" 
       placeholder="Pontos" 
-      required 
-      min="0" 
+      required
       value="${membro.pontos ?? ""}"
     />
 
@@ -226,7 +277,7 @@ function coletarMembros() {
       };
     })
     .filter((membro) => {
-      return membro.nome && membro.user;
+      return membro.nome && membro.user && !Number.isNaN(Number(membro.pontos));
     });
 }
 
