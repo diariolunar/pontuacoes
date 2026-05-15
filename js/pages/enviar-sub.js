@@ -131,10 +131,28 @@ function extrairValor(linha) {
 
 function linhaTemCampo(linha, campo) {
   const linhaNormalizada = normalizarTexto(linha);
-
   const regex = new RegExp(`${campo}\\s*\\.?\\s*:`, "i");
 
   return regex.test(linhaNormalizada);
+}
+
+function linhaEhFinalDeFicha(linha) {
+  const texto = normalizarTexto(linha);
+
+  return (
+    texto.startsWith("adm:") ||
+    texto.startsWith("adm ") ||
+    texto.includes("nao esta incluso leitura lunar") ||
+    texto.includes("não está incluso leitura lunar") ||
+    texto.includes("proj lunar") ||
+    texto.includes("proj. lunar") ||
+    texto.includes("projeto lunar") ||
+    texto.includes("atencao") ||
+    texto.includes("atenção") ||
+    texto.includes("vamos manter") ||
+    texto.includes("obrigada pela cooperacao") ||
+    texto.includes("obrigada pela cooperação")
+  );
 }
 
 function criarRegexCodigoSub(codigo) {
@@ -294,6 +312,15 @@ function separarBlocosDeMembros(texto) {
   let blocoAtual = [];
 
   for (const linhaOriginal of linhas) {
+    if (linhaEhFinalDeFicha(linhaOriginal)) {
+      if (blocoAtual.length > 0) {
+        blocos.push(blocoAtual.join("\n"));
+      }
+
+      blocoAtual = [];
+      continue;
+    }
+
     const ehLinhaDeNome = linhaTemCampo(linhaOriginal, "nome");
 
     if (ehLinhaDeNome) {
@@ -337,12 +364,18 @@ function extrairMembroDoBloco(bloco) {
   let pontos = null;
 
   for (const linhaOriginal of linhas) {
+    if (linhaEhFinalDeFicha(linhaOriginal)) {
+      break;
+    }
+
     if (linhaTemCampo(linhaOriginal, "nome")) {
       nome = extrairValor(linhaOriginal);
+      continue;
     }
 
     if (linhaTemCampo(linhaOriginal, "user")) {
       user = normalizarUser(extrairValor(linhaOriginal));
+      continue;
     }
 
     if (linhaTemCampo(linhaOriginal, "pontos")) {
