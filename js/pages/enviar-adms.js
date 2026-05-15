@@ -14,5 +14,6 @@ iniciarEnvioCategoriaVariavel({
   origem: "Pontuação dos ADMs",
   pontosLabel: "Pontos",
   descricaoLabel: "Motivo/atividade",
-  submitText: "Enviar Pontuação dos ADMs"
+  submitText: "Enviar Pontuação dos ADMs",
+  exigirLogin: true
 });

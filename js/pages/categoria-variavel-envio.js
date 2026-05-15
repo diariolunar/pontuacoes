@@ -9,6 +9,11 @@ import {
   normalizarUser
 } from "../core/utils.js";
 
+import {
+  protegerPagina,
+  configurarBotaoLogout
+} from "../core/auth.js";
+
 export function iniciarEnvioCategoriaVariavel({
   formId,
   listaTextoId,
@@ -21,8 +26,14 @@ export function iniciarEnvioCategoriaVariavel({
   origem,
   pontosLabel = "Pontos",
   descricaoLabel = "Motivo/atividade",
-  submitText = "Enviar pontuação"
+  submitText = "Enviar pontuação",
+  exigirLogin = false
 }) {
+  if (exigirLogin) {
+    protegerPagina();
+    configurarBotaoLogout();
+  }
+
   const form = document.getElementById(formId);
   const listaTexto = document.getElementById(listaTextoId);
   const membersList = document.getElementById(membersListId);
