@@ -1,4 +1,5 @@
 import {
+  limparPontuacoesCategoriaSemana,
   listarPontuacoesCategoria
 } from "../services/pontuacoes.service.js";
 
@@ -22,6 +23,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 const chuvaTabela = document.getElementById("chuvaTabela");
 const chuvaMessage = document.getElementById("chuvaMessage");
+const limparSemanaBtn = document.getElementById("limparSemanaBtn");
 
 function agruparPorUser(registros) {
   const mapa = new Map();
@@ -103,5 +105,46 @@ async function carregarChuvaEstrelas() {
     );
   }
 }
+
+limparSemanaBtn.addEventListener("click", async () => {
+  const semanaAtual = gerarSemanaAtual();
+
+  const confirmar = window.confirm(
+    `Tem certeza que deseja limpar a lista da Chuva de Estrelas da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    limparSemanaBtn.disabled = true;
+    limparSemanaBtn.textContent = "Limpando...";
+
+    const resultado = await limparPontuacoesCategoriaSemana({
+      colecao: "chuvaEstrelas",
+      semana: semanaAtual
+    });
+
+    mostrarMensagem(
+      chuvaMessage,
+      `Lista da semana limpa com sucesso. Registros removidos: ${resultado.registrosRemovidos}.`,
+      "success"
+    );
+
+    await carregarChuvaEstrelas();
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      chuvaMessage,
+      `Erro ao limpar lista: ${erro.message || "tente novamente."}`,
+      "error"
+    );
+  } finally {
+    limparSemanaBtn.disabled = false;
+    limparSemanaBtn.textContent = "Limpar lista da semana";
+  }
+});
 
 carregarChuvaEstrelas();

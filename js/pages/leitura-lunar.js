@@ -1,4 +1,5 @@
 import {
+  limparPontuacoesCategoriaSemana,
   listarPontuacoesCategoria
 } from "../services/pontuacoes.service.js";
 
@@ -22,6 +23,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 const leituraTabela = document.getElementById("leituraTabela");
 const leituraMessage = document.getElementById("leituraMessage");
+const limparSemanaBtn = document.getElementById("limparSemanaBtn");
 
 function agruparPorUser(registros) {
   const mapa = new Map();
@@ -103,5 +105,46 @@ async function carregarLeituraLunar() {
     );
   }
 }
+
+limparSemanaBtn.addEventListener("click", async () => {
+  const semanaAtual = gerarSemanaAtual();
+
+  const confirmar = window.confirm(
+    `Tem certeza que deseja limpar a lista da Leitura Lunar da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    limparSemanaBtn.disabled = true;
+    limparSemanaBtn.textContent = "Limpando...";
+
+    const resultado = await limparPontuacoesCategoriaSemana({
+      colecao: "leituraLunar",
+      semana: semanaAtual
+    });
+
+    mostrarMensagem(
+      leituraMessage,
+      `Lista da semana limpa com sucesso. Registros removidos: ${resultado.registrosRemovidos}.`,
+      "success"
+    );
+
+    await carregarLeituraLunar();
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      leituraMessage,
+      `Erro ao limpar lista: ${erro.message || "tente novamente."}`,
+      "error"
+    );
+  } finally {
+    limparSemanaBtn.disabled = false;
+    limparSemanaBtn.textContent = "Limpar lista da semana";
+  }
+});
 
 carregarLeituraLunar();

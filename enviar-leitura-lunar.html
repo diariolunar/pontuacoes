@@ -4,34 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Teste Leitura Lunar | Central Lunar</title>
+  <title>Enviar Leitura Lunar | Central Lunar</title>
 
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
-  <h1 style="
-    color: #000;
-    background: yellow;
-    padding: 30px;
-    margin: 0;
-    font-size: 28px;
-    text-align: center;
-    border: 6px solid red;
-    font-family: Arial, sans-serif;
-  ">
-    TESTE VISÍVEL — ESTE É O ARQUIVO enviar-leitura-lunar.html CORRETO
-  </h1>
-
   <div id="header"></div>
 
   <main class="page">
     <section class="form-container">
-      <span class="tag">Teste de carregamento</span>
+      <span class="tag">Envio de participação</span>
 
-      <h1>Teste da Leitura Lunar</h1>
+      <h1>Enviar Leitura Lunar</h1>
 
       <p>
-        Esta página está testando se o HTML e o JavaScript estão carregando corretamente.
+        Cole a lista de membros que fizeram a Leitura Lunar. Cada membro receberá
+        automaticamente 50 pontos na pontuação da semana.
       </p>
 
       <form id="leituraForm" class="form">
@@ -42,7 +30,11 @@
             placeholder="Ex:
 Mayke Arrais - RKymae
 Leh - userdaleh
-Anna - userdaanna"
+Anna - userdaanna
+
+Ou:
+Nome: Mayke Arrais
+User: RKymae"
           ></textarea>
         </div>
 
@@ -73,171 +65,7 @@ Anna - userdaanna"
 
   <div id="footer"></div>
 
-  <script>
-    alert("O HTML novo de enviar-leitura-lunar.html carregou.");
-
-    document.addEventListener("DOMContentLoaded", function () {
-      const leituraForm = document.getElementById("leituraForm");
-      const listaTexto = document.getElementById("listaTexto");
-      const membersList = document.getElementById("membersList");
-      const addMemberBtn = document.getElementById("addMemberBtn");
-      const lerListaBtn = document.getElementById("lerListaBtn");
-      const leituraMessage = document.getElementById("leituraMessage");
-
-      function mostrarMensagem(texto, tipo) {
-        leituraMessage.textContent = texto;
-        leituraMessage.className = "message " + tipo;
-      }
-
-      function normalizarUser(user) {
-        if (!user) return "";
-
-        const userLimpo = String(user).trim().toLowerCase();
-
-        if (userLimpo.startsWith("@")) {
-          return userLimpo;
-        }
-
-        return "@" + userLimpo;
-      }
-
-      function escaparHtml(valor) {
-        return String(valor)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function criarLinhaMembro(membro) {
-        const linha = document.createElement("div");
-
-        linha.className = "member-row";
-
-        linha.innerHTML = `
-          <input 
-            type="text" 
-            class="member-name" 
-            placeholder="Nome do membro" 
-            required 
-            value="${escaparHtml(membro.nome || "")}"
-          />
-
-          <input 
-            type="text" 
-            class="member-user" 
-            placeholder="@user" 
-            required 
-            value="${escaparHtml(membro.user || "")}"
-          />
-
-          <input 
-            type="number" 
-            class="member-points" 
-            value="50"
-            readonly
-          />
-
-          <button type="button" class="remove-member">×</button>
-        `;
-
-        const removeBtn = linha.querySelector(".remove-member");
-
-        removeBtn.addEventListener("click", function () {
-          linha.remove();
-        });
-
-        membersList.appendChild(linha);
-      }
-
-      function lerListaSimples(texto) {
-        const linhas = texto
-          .split(/\r?\n/)
-          .map(function (linha) {
-            return linha.trim();
-          })
-          .filter(Boolean);
-
-        const membros = [];
-
-        for (const linha of linhas) {
-          let partes = [];
-
-          if (linha.includes(" - ")) {
-            partes = linha.split(" - ");
-          } else if (linha.includes(" — ")) {
-            partes = linha.split(" — ");
-          } else if (linha.includes("|")) {
-            partes = linha.split("|");
-          } else if (linha.includes(";")) {
-            partes = linha.split(";");
-          } else if (linha.includes(",")) {
-            partes = linha.split(",");
-          }
-
-          partes = partes
-            .map(function (parte) {
-              return parte.trim();
-            })
-            .filter(Boolean);
-
-          if (partes.length >= 2) {
-            membros.push({
-              nome: partes[0],
-              user: normalizarUser(partes[1])
-            });
-          }
-        }
-
-        return membros;
-      }
-
-      mostrarMensagem("O JavaScript interno do HTML carregou corretamente.", "success");
-
-      addMemberBtn.addEventListener("click", function () {
-        alert("Botão Adicionar membro funcionou.");
-
-        criarLinhaMembro({
-          nome: "Teste Nome",
-          user: "@testeuser"
-        });
-      });
-
-      lerListaBtn.addEventListener("click", function () {
-        alert("Botão Ler lista automaticamente funcionou.");
-
-        const texto = listaTexto.value.trim();
-
-        if (!texto) {
-          mostrarMensagem("O botão funcionou, mas a lista está vazia.", "error");
-          return;
-        }
-
-        const membros = lerListaSimples(texto);
-
-        if (membros.length === 0) {
-          mostrarMensagem("O botão funcionou, mas não encontrou membros. Use: Nome - User", "error");
-          return;
-        }
-
-        membersList.innerHTML = "";
-
-        membros.forEach(function (membro) {
-          criarLinhaMembro(membro);
-        });
-
-        mostrarMensagem(membros.length + " membro(s) encontrado(s).", "success");
-      });
-
-      leituraForm.addEventListener("submit", function (evento) {
-        evento.preventDefault();
-
-        alert("Botão Enviar Leitura Lunar funcionou. Ainda estamos só no teste do HTML.");
-      });
-    });
-  </script>
-
   <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-leitura-lunar.js"></script>
 </body>
 </html>

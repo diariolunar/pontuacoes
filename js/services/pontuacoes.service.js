@@ -3,6 +3,7 @@ import { db } from "../config/firebase.js";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -290,4 +291,41 @@ export async function listarPontuacoesCategoria({
   }
 
   return registros;
+}
+
+export async function limparPontuacoesCategoriaSemana({
+  colecao,
+  semana
+}) {
+  if (!colecao || !semana) {
+    throw new Error("Coleção ou semana não informada.");
+  }
+
+  const registrosSnapshot = await getDocs(collection(db, colecao));
+
+  const registrosDaSemana = registrosSnapshot.docs.filter((documento) => {
+    const dados = documento.data();
+    return dados.semana === semana;
+  });
+
+  for (const documento of registrosDaSemana) {
+    await deleteDoc(doc(db, colecao, documento.id));
+  }
+
+  const enviosColecao = `envios_${colecao}`;
+  const enviosSnapshot = await getDocs(collection(db, enviosColecao));
+
+  const enviosDaSemana = enviosSnapshot.docs.filter((documento) => {
+    const dados = documento.data();
+    return dados.semana === semana;
+  });
+
+  for (const documento of enviosDaSemana) {
+    await deleteDoc(doc(db, enviosColecao, documento.id));
+  }
+
+  return {
+    registrosRemovidos: registrosDaSemana.length,
+    enviosRemovidos: enviosDaSemana.length
+  };
 }
