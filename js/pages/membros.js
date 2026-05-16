@@ -12,9 +12,9 @@ import {
 } from "../core/auth.js";
 
 import {
-  criarIdSeguro,
   escaparHtml,
   mostrarMensagem,
+  normalizarBusca,
   normalizarUser
 } from "../core/utils.js";
 
@@ -112,20 +112,27 @@ function renderizarMembros(lista) {
 }
 
 function filtrarMembros() {
-  const termo = buscaMembro.value.trim().toLowerCase();
+  const termoOriginal = buscaMembro.value.trim();
 
-  if (!termo) {
+  if (!termoOriginal) {
     renderizarMembros(membrosCarregados);
     return;
   }
 
-  const termoComoUser = normalizarUser(termo);
+  const termo = normalizarBusca(termoOriginal);
+  const termoComoUser = normalizarBusca(normalizarUser(termoOriginal));
 
   const filtrados = membrosCarregados.filter((membro) => {
-    const nome = String(membro.nome || "").toLowerCase();
-    const user = normalizarUser(membro.user || "");
+    const nome = normalizarBusca(membro.nome || "");
+    const user = normalizarBusca(membro.user || "");
+    const userSemArroba = normalizarBusca(String(membro.user || "").replace("@", ""));
 
-    return nome.includes(termo) || user.includes(termoComoUser);
+    return (
+      nome.includes(termo) ||
+      user.includes(termoComoUser) ||
+      user.includes(termo) ||
+      userSemArroba.includes(termo)
+    );
   });
 
   renderizarMembros(filtrados);
@@ -305,11 +312,25 @@ novoMembroForm.addEventListener("submit", async (evento) => {
       user
     });
 
-    membrosCarregados.push(novoMembro);
+    const jaExisteNaLista = membrosCarregados.some((membro) => {
+      return membro.id === novoMembro.id;
+    });
+
+    if (jaExisteNaLista) {
+      membrosCarregados = membrosCarregados.map((membro) => {
+        if (membro.id !== novoMembro.id) {
+          return membro;
+        }
+
+        return novoMembro;
+      });
+    } else {
+      membrosCarregados.push(novoMembro);
+    }
 
     membrosCarregados.sort((a, b) => {
-      const nomeA = String(a.nome || "").toLowerCase();
-      const nomeB = String(b.nome || "").toLowerCase();
+      const nomeA = normalizarBusca(a.nome || "");
+      const nomeB = normalizarBusca(b.nome || "");
 
       return nomeA.localeCompare(nomeB);
     });
