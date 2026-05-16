@@ -3,6 +3,11 @@ import {
 } from "../services/pontuacoes.service.js";
 
 import {
+  listarMembros
+} from "../services/membros.service.js";
+
+import {
+  criarIdSeguro,
   escaparHtml,
   gerarSemanaAtual,
   mostrarMensagem,
@@ -17,6 +22,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
 
 let pontuacoesCarregadas = [];
+let usersCadastrados = new Set();
 
 const categorias = [
   { campo: "total_subs", nome: "Subs" },
@@ -67,8 +73,9 @@ function agruparPontuacoesPorUser(pontuacoes) {
 
   for (const pontuacao of pontuacoes) {
     const userNormalizado = normalizarUser(pontuacao.user || "");
+    const userIdSeguro = criarIdSeguro(userNormalizado);
 
-    if (!userNormalizado) {
+    if (!userNormalizado || !usersCadastrados.has(userIdSeguro)) {
       continue;
     }
 
@@ -270,6 +277,12 @@ async function carregarPontuacoes() {
   semanaAtualTexto.textContent = `Semana atual: ${semanaAtual}`;
 
   try {
+    const membros = await listarMembros();
+
+    usersCadastrados = new Set(
+      membros.map((membro) => criarIdSeguro(membro.user || ""))
+    );
+
     const pontuacoes = await listarPontuacaoGeral(semanaAtual);
 
     pontuacoesCarregadas = agruparPontuacoesPorUser(pontuacoes);
