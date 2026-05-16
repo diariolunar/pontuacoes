@@ -10,6 +10,15 @@ export function normalizarUser(user) {
   return `@${userLimpo}`;
 }
 
+export function normalizarBusca(valor) {
+  return String(valor || "")
+    .normalize("NFKC")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export function criarIdSeguro(valor) {
   return String(valor || "")
     .normalize("NFKC")
