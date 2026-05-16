@@ -26,9 +26,20 @@ export async function buscarOuCriarMembro({ nome, user }) {
   const membroSnap = await getDoc(membroRef);
 
   if (membroSnap.exists()) {
+    const dadosAtuais = membroSnap.data();
+
+    const dadosAtualizados = {
+      nome: dadosAtuais.nome || nome.trim(),
+      user: userNormalizado,
+      atualizadoEm: serverTimestamp()
+    };
+
+    await updateDoc(membroRef, dadosAtualizados);
+
     return {
       id: membroId,
-      ...membroSnap.data()
+      ...dadosAtuais,
+      ...dadosAtualizados
     };
   }
 
@@ -58,7 +69,20 @@ export async function cadastrarMembro({
   const membroSnap = await getDoc(membroRef);
 
   if (membroSnap.exists()) {
-    throw new Error("Já existe um membro cadastrado com esse user.");
+    const dadosAtuais = membroSnap.data();
+
+    await updateDoc(membroRef, {
+      nome: nome.trim(),
+      user: userNormalizado,
+      atualizadoEm: serverTimestamp()
+    });
+
+    return {
+      id: membroId,
+      ...dadosAtuais,
+      nome: nome.trim(),
+      user: userNormalizado
+    };
   }
 
   const novoMembro = {
@@ -135,7 +159,16 @@ export async function atualizarMembro({
   const novoMembroSnap = await getDoc(novoMembroRef);
 
   if (novoMembroSnap.exists()) {
-    throw new Error("Já existe outro membro cadastrado com esse user.");
+    const dadosExistentes = novoMembroSnap.data();
+
+    await updateDoc(novoMembroRef, dadosAtualizados);
+    await deleteDoc(doc(db, "membros", idAtual));
+
+    return {
+      id: novoId,
+      ...dadosExistentes,
+      ...dadosAtualizados
+    };
   }
 
   const membroAtual = await buscarMembroPorId(idAtual);
