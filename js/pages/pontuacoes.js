@@ -50,6 +50,83 @@ function formatarPontos(valor) {
   return String(numero);
 }
 
+function calcularTotalPorCategorias(pontuacao) {
+  const total = categorias.reduce((soma, categoria) => {
+    return soma + obterNumero(pontuacao[categoria.campo]);
+  }, 0);
+
+  if (total < 0) {
+    return 0;
+  }
+
+  return total;
+}
+
+function agruparPontuacoesPorUser(pontuacoes) {
+  const mapa = new Map();
+
+  for (const pontuacao of pontuacoes) {
+    const userNormalizado = normalizarUser(pontuacao.user || "");
+
+    if (!userNormalizado) {
+      continue;
+    }
+
+    if (!mapa.has(userNormalizado)) {
+      const base = {
+        ...pontuacao,
+        user: userNormalizado
+      };
+
+      for (const categoria of categorias) {
+        base[categoria.campo] = obterNumero(base[categoria.campo]);
+      }
+
+      mapa.set(userNormalizado, base);
+      continue;
+    }
+
+    const existente = mapa.get(userNormalizado);
+
+    if (!existente.nome && pontuacao.nome) {
+      existente.nome = pontuacao.nome;
+    }
+
+    if (
+      pontuacao.nome &&
+      obterNumero(pontuacao.totalGeral) > obterNumero(existente.totalGeral)
+    ) {
+      existente.nome = pontuacao.nome;
+    }
+
+    for (const categoria of categorias) {
+      existente[categoria.campo] =
+        obterNumero(existente[categoria.campo]) +
+        obterNumero(pontuacao[categoria.campo]);
+    }
+
+    existente.totalGeral =
+      obterNumero(existente.totalGeral) +
+      obterNumero(pontuacao.totalGeral);
+  }
+
+  return Array.from(mapa.values()).map((pontuacao) => {
+    const totalCategorias = calcularTotalPorCategorias(pontuacao);
+    const totalAntigo = obterNumero(pontuacao.totalGeral);
+
+    const temCategoriaRegistrada = categorias.some((categoria) => {
+      return obterNumero(pontuacao[categoria.campo]) !== 0;
+    });
+
+    return {
+      ...pontuacao,
+      totalGeral: temCategoriaRegistrada
+        ? totalCategorias
+        : Math.max(0, totalAntigo)
+    };
+  });
+}
+
 function obterCategoriasComPontos(pontuacao) {
   return categorias
     .map((categoria) => {
@@ -174,7 +251,9 @@ async function carregarPontuacoes() {
   semanaAtualTexto.textContent = `Semana atual: ${semanaAtual}`;
 
   try {
-    pontuacoesCarregadas = await listarPontuacaoGeral(semanaAtual);
+    const pontuacoes = await listarPontuacaoGeral(semanaAtual);
+
+    pontuacoesCarregadas = agruparPontuacoesPorUser(pontuacoes);
 
     renderizarPontuacoes(pontuacoesCarregadas);
   } catch (erro) {
