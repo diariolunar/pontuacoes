@@ -10,13 +10,86 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 import {
   criarIdSeguro,
   normalizarUser
 } from "../core/utils.js";
+
+const colecoesComUser = [
+  "pontuacaoGeral",
+  "historicoPontuacoes",
+  "ajustesManuais",
+  "pontuacoesSubs",
+  "leituraLunar",
+  "chuvaEstrelas",
+  "pontuacaoAdms",
+  "diarioLunar",
+  "ascensao",
+  "redesSociais",
+  "divulgacoes"
+];
+
+function documentoPertenceAoUser(documento, userIdSeguro) {
+  const dados = documento.data();
+  const userDoDocumento = criarIdSeguro(dados.user || "");
+  const idDoDocumento = String(documento.id || "");
+
+  if (userDoDocumento === userIdSeguro) {
+    return true;
+  }
+
+  if (idDoDocumento === userIdSeguro) {
+    return true;
+  }
+
+  if (idDoDocumento.endsWith(`_${userIdSeguro}`)) {
+    return true;
+  }
+
+  return false;
+}
+
+async function apagarDocumentosDoUser(userIdSeguro) {
+  let batch = writeBatch(db);
+  let operacoes = 0;
+  let removidos = 0;
+
+  async function confirmarBatchSeNecessario(forcar = false) {
+    if (operacoes === 0) {
+      return;
+    }
+
+    if (forcar || operacoes >= 450) {
+      await batch.commit();
+      batch = writeBatch(db);
+      operacoes = 0;
+    }
+  }
+
+  for (const nomeColecao of colecoesComUser) {
+    const snapshot = await getDocs(collection(db, nomeColecao));
+
+    for (const documento of snapshot.docs) {
+      if (!documentoPertenceAoUser(documento, userIdSeguro)) {
+        continue;
+      }
+
+      batch.delete(doc(db, nomeColecao, documento.id));
+      operacoes++;
+      removidos++;
+
+      await confirmarBatchSeNecessario();
+    }
+  }
+
+  await confirmarBatchSeNecessario(true);
+
+  return removidos;
+}
 
 export async function buscarOuCriarMembro({ nome, user }) {
   const userNormalizado = normalizarUser(user);
@@ -199,6 +272,18 @@ export async function excluirMembro(id) {
     throw new Error("ID do membro não informado.");
   }
 
+  const membroAtual = await buscarMembroPorId(id);
+  const userIdSeguro = membroAtual?.user
+    ? criarIdSeguro(membroAtual.user)
+    : criarIdSeguro(id);
+
+  const totalDocumentosRemovidos = await apagarDocumentosDoUser(userIdSeguro);
+
   const membroRef = doc(db, "membros", id);
   await deleteDoc(membroRef);
+
+  return {
+    id,
+    totalDocumentosRemovidos
+  };
 }
