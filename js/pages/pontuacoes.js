@@ -196,7 +196,23 @@ function criarCardPontuacao(pontuacao) {
   `;
 }
 
-function renderizarPontuacoes(lista) {
+function ordenarPontuacoes(lista) {
+  return [...lista].sort((a, b) => {
+    const totalA = obterNumero(a.totalGeral);
+    const totalB = obterNumero(b.totalGeral);
+
+    if (totalB !== totalA) {
+      return totalB - totalA;
+    }
+
+    const nomeA = String(a.nome || "").toLowerCase();
+    const nomeB = String(b.nome || "").toLowerCase();
+
+    return nomeA.localeCompare(nomeB);
+  });
+}
+
+function renderizarPontuacoes(lista, mensagemVazia = "Nenhum usuário encontrado com essa busca.") {
   totalUsuariosTexto.textContent = `Usuários encontrados: ${lista.length}`;
 
   if (lista.length === 0) {
@@ -204,7 +220,7 @@ function renderizarPontuacoes(lista) {
 
     mostrarMensagem(
       pontuacoesMessage,
-      "Nenhum usuário encontrado com essa busca.",
+      mensagemVazia,
       "error"
     );
 
@@ -214,23 +230,26 @@ function renderizarPontuacoes(lista) {
   pontuacoesMessage.textContent = "";
   pontuacoesMessage.className = "message";
 
-  const listaOrdenada = [...lista].sort((a, b) => {
-    const nomeA = String(a.nome || "").toLowerCase();
-    const nomeB = String(b.nome || "").toLowerCase();
-
-    return nomeA.localeCompare(nomeB);
-  });
-
-  pontuacoesLista.innerHTML = listaOrdenada
+  pontuacoesLista.innerHTML = ordenarPontuacoes(lista)
     .map((pontuacao) => criarCardPontuacao(pontuacao))
     .join("");
+}
+
+function obterListaVisivelGeral() {
+  return pontuacoesCarregadas.filter((pontuacao) => {
+    return obterNumero(pontuacao.totalGeral) > 0;
+  });
 }
 
 function filtrarPontuacoes() {
   const termo = buscaUser.value.trim();
 
   if (!termo) {
-    renderizarPontuacoes(pontuacoesCarregadas);
+    renderizarPontuacoes(
+      obterListaVisivelGeral(),
+      "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+    );
+
     return;
   }
 
@@ -255,7 +274,10 @@ async function carregarPontuacoes() {
 
     pontuacoesCarregadas = agruparPontuacoesPorUser(pontuacoes);
 
-    renderizarPontuacoes(pontuacoesCarregadas);
+    renderizarPontuacoes(
+      obterListaVisivelGeral(),
+      "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+    );
   } catch (erro) {
     console.error(erro);
 
@@ -273,7 +295,11 @@ buscaUser.addEventListener("input", () => {
 
 limparBuscaBtn.addEventListener("click", () => {
   buscaUser.value = "";
-  renderizarPontuacoes(pontuacoesCarregadas);
+
+  renderizarPontuacoes(
+    obterListaVisivelGeral(),
+    "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+  );
 });
 
 carregarPontuacoes();
