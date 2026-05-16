@@ -230,7 +230,7 @@ function configurarBotoesExcluir() {
       const user = card.querySelector(".edit-user").value.trim();
 
       const confirmar = window.confirm(
-        `Tem certeza que deseja excluir o cadastro de ${nome} (${user})?\n\nIsso não apaga o histórico de pontuação já registrado.`
+        `Tem certeza que deseja excluir ${nome} (${user})?\n\nIsso vai apagar o cadastro, a pontuação geral, o histórico e todos os registros de pontuação desse membro.`
       );
 
       if (!confirmar) {
@@ -241,13 +241,13 @@ function configurarBotoesExcluir() {
         botao.disabled = true;
         botao.textContent = "Excluindo...";
 
-        await excluirMembro(id);
+        const resultado = await excluirMembro(id);
 
         removerMembroDaLista(id);
 
         mostrarMensagem(
           membrosMessage,
-          "Membro excluído com sucesso.",
+          `Membro excluído com sucesso. Registros removidos: ${resultado.totalDocumentosRemovidos}.`,
           "success"
         );
 
