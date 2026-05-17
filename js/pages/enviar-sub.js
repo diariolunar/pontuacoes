@@ -80,9 +80,9 @@ const mapaSubs = [
   },
   {
     codigo: "A-11",
-    valor: "A-11 DESATIVADO",
-    desativado: true,
-    chaves: []
+    valor: "A-11 Sussurros Infinitos",
+    desativado: false,
+    chaves: ["sussurros infinitos"]
   },
   {
     codigo: "A-12",
