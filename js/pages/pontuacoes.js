@@ -22,7 +22,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
 
 let pontuacoesCarregadas = [];
-let usersCadastrados = new Set();
+let membrosPorIdSeguro = new Map();
 
 const categorias = [
   { campo: "total_subs", nome: "Subs" },
@@ -68,43 +68,72 @@ function calcularTotalPorCategorias(pontuacao) {
   return total;
 }
 
+function criarMapaDeMembros(membros) {
+  const mapa = new Map();
+
+  for (const membro of membros) {
+    const userIdSeguro = criarIdSeguro(membro.user || "");
+
+    if (!userIdSeguro) {
+      continue;
+    }
+
+    mapa.set(userIdSeguro, {
+      id: membro.id,
+      nome: membro.nome || "",
+      user: normalizarUser(membro.user || "")
+    });
+  }
+
+  return mapa;
+}
+
 function agruparPontuacoesPorUser(pontuacoes) {
   const mapa = new Map();
 
   for (const pontuacao of pontuacoes) {
     const userNormalizado = normalizarUser(pontuacao.user || "");
     const userIdSeguro = criarIdSeguro(userNormalizado);
+    const membroOficial = membrosPorIdSeguro.get(userIdSeguro);
 
-    if (!userNormalizado || !usersCadastrados.has(userIdSeguro)) {
+    /**
+     * Se o user não existe mais no cadastro de membros,
+     * não deve aparecer na pontuação geral.
+     */
+    if (!userIdSeguro || !membroOficial) {
       continue;
     }
 
-    if (!mapa.has(userNormalizado)) {
+    /**
+     * A chave do agrupamento precisa ser o ID seguro,
+     * não o user escrito, porque pode existir diferença de acento:
+     * @kazmaleão / @kazmaleao
+     */
+    if (!mapa.has(userIdSeguro)) {
       const base = {
         ...pontuacao,
-        user: userNormalizado
+        nome: membroOficial.nome,
+        user: membroOficial.user
       };
 
       for (const categoria of categorias) {
         base[categoria.campo] = obterNumero(base[categoria.campo]);
       }
 
-      mapa.set(userNormalizado, base);
+      base.totalGeral = obterNumero(base.totalGeral);
+
+      mapa.set(userIdSeguro, base);
       continue;
     }
 
-    const existente = mapa.get(userNormalizado);
+    const existente = mapa.get(userIdSeguro);
 
-    if (!existente.nome && pontuacao.nome) {
-      existente.nome = pontuacao.nome;
-    }
-
-    if (
-      pontuacao.nome &&
-      obterNumero(pontuacao.totalGeral) > obterNumero(existente.totalGeral)
-    ) {
-      existente.nome = pontuacao.nome;
-    }
+    /**
+     * Sempre mantém nome e user vindos do cadastro oficial.
+     * Nunca usa o nome salvo na pontuação.
+     */
+    existente.nome = membroOficial.nome;
+    existente.user = membroOficial.user;
 
     for (const categoria of categorias) {
       existente[categoria.campo] =
@@ -261,11 +290,16 @@ function filtrarPontuacoes() {
   }
 
   const termoNormalizado = normalizarUser(termo);
+  const termoIdSeguro = criarIdSeguro(termoNormalizado);
 
   const filtradas = pontuacoesCarregadas.filter((pontuacao) => {
     const user = normalizarUser(pontuacao.user || "");
+    const userIdSeguro = criarIdSeguro(user);
 
-    return user.includes(termoNormalizado);
+    return (
+      user.includes(termoNormalizado) ||
+      userIdSeguro.includes(termoIdSeguro)
+    );
   });
 
   renderizarPontuacoes(filtradas);
@@ -279,9 +313,7 @@ async function carregarPontuacoes() {
   try {
     const membros = await listarMembros();
 
-    usersCadastrados = new Set(
-      membros.map((membro) => criarIdSeguro(membro.user || ""))
-    );
+    membrosPorIdSeguro = criarMapaDeMembros(membros);
 
     const pontuacoes = await listarPontuacaoGeral(semanaAtual);
 
