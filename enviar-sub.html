@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Enviar Pontuação de Sub | Central Lunar</title>
+  <title>Enviar Sub | Central Lunar</title>
 
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
@@ -13,31 +15,31 @@
 
   <main class="page">
     <section class="form-container">
-      <span class="tag">Envio dos ADMs</span>
+      <span class="tag">Envio de pontuação</span>
 
       <h1>Enviar pontuação do sub</h1>
 
       <p>
-        Cole a ficha completa do sub. O sistema tentará reconhecer automaticamente
-        o sub, os nomes, os users e os pontos dos membros.
+        Cole a ficha completa do sub, clique em ler automaticamente, confira os dados reconhecidos e envie a pontuação.
       </p>
 
       <form id="subForm" class="form">
         <div class="field">
-          <label for="subNome">Nome do sub</label>
+          <label for="subNome">Sub</label>
+
           <select id="subNome" required>
-            <option value="">O sistema tentará reconhecer automaticamente</option>
+            <option value="">Selecione o sub</option>
             <option value="A-1 Chama Eterna">A-1 - Chama Eterna</option>
             <option value="A-2 Página Livre">A-2 - Página Livre</option>
             <option value="A-3 Entre Nós">A-3 - Entre Nós</option>
             <option value="A-4 Sussurros da Aurora">A-4 - Sussurros da Aurora</option>
             <option value="A-5 Crepúsculo">A-5 - Crepúsculo</option>
             <option value="A-6 Trono Profano">A-6 - Trono Profano</option>
-            <option value="A-7 DESATIVADO" disabled>A-7 - Desativado no momento</option>
+            <option value="A-7 Margens de Mundos">A-7 - Margens de Mundos</option>
             <option value="A-8 Ordem do Eclipse">A-8 - Ordem do Eclipse</option>
             <option value="A-9 Cicatrizes Literárias">A-9 - Cicatrizes Literárias</option>
             <option value="A-10 Quasar">A-10 - Quasar</option>
-            <option value="A-11 DESATIVADO" disabled>A-11 - Desativado no momento</option>
+            <option value="A-11 Sussurros Infinitos">A-11 - Sussurros Infinitos</option>
             <option value="A-12 Estrela Polar">A-12 - Estrela Polar</option>
             <option value="A-13 Luar Profano">A-13 - Luar Profano</option>
             <option value="A-14 Fragmentos da Noite">A-14 - Fragmentos da Noite</option>
@@ -46,10 +48,11 @@
         </div>
 
         <div class="field">
-          <label for="fichaTexto">Cole aqui a ficha completa do sub</label>
+          <label for="fichaTexto">Cole aqui a ficha completa</label>
+
           <textarea
             id="fichaTexto"
-            placeholder="Cole aqui a ficha enviada no WhatsApp..."
+            placeholder="Cole aqui a ficha completa do sub..."
           ></textarea>
         </div>
 
