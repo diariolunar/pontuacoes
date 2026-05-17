@@ -35,7 +35,7 @@ const subs = [
   { nome: "A-8 Ordem do Eclipse", titulo: "A-8 - Ordem do Eclipse", desativado: false },
   { nome: "A-9 Cicatrizes Literárias", titulo: "A-9 - Cicatrizes Literárias", desativado: false },
   { nome: "A-10 Quasar", titulo: "A-10 - Quasar", desativado: false },
-  { nome: "A-11 DESATIVADO", titulo: "A-11 - Desativado no momento", desativado: true },
+  { nome: "A-11 Sussurros Infinitos", titulo: "A-11 - Sussurros Infinitos", desativado: false },
   { nome: "A-12 Estrela Polar", titulo: "A-12 - Estrela Polar", desativado: false },
   { nome: "A-13 Luar Profano", titulo: "A-13 - Luar Profano", desativado: false },
   { nome: "A-14 Fragmentos da Noite", titulo: "A-14 - Fragmentos da Noite", desativado: false },
