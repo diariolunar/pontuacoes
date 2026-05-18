@@ -9,7 +9,6 @@ import {
 import {
   criarIdSeguro,
   escaparHtml,
-  gerarSemanaAtual,
   mostrarMensagem,
   normalizarUser
 } from "../core/utils.js";
@@ -18,7 +17,7 @@ const buscaUser = document.getElementById("buscaUser");
 const limparBuscaBtn = document.getElementById("limparBuscaBtn");
 const pontuacoesLista = document.getElementById("pontuacoesLista");
 const pontuacoesMessage = document.getElementById("pontuacoesMessage");
-const semanaAtualTexto = document.getElementById("semanaAtualTexto");
+const modoPontuacaoTexto = document.getElementById("modoPontuacaoTexto");
 const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
 
 let pontuacoesCarregadas = [];
@@ -96,19 +95,10 @@ function agruparPontuacoesPorUser(pontuacoes) {
     const userIdSeguro = criarIdSeguro(userNormalizado);
     const membroOficial = membrosPorIdSeguro.get(userIdSeguro);
 
-    /**
-     * Se o user não existe mais no cadastro de membros,
-     * não deve aparecer na pontuação geral.
-     */
     if (!userIdSeguro || !membroOficial) {
       continue;
     }
 
-    /**
-     * A chave do agrupamento precisa ser o ID seguro,
-     * não o user escrito, porque pode existir diferença de acento:
-     * @kazmaleão / @kazmaleao
-     */
     if (!mapa.has(userIdSeguro)) {
       const base = {
         ...pontuacao,
@@ -128,10 +118,6 @@ function agruparPontuacoesPorUser(pontuacoes) {
 
     const existente = mapa.get(userIdSeguro);
 
-    /**
-     * Sempre mantém nome e user vindos do cadastro oficial.
-     * Nunca usa o nome salvo na pontuação.
-     */
     existente.nome = membroOficial.nome;
     existente.user = membroOficial.user;
 
@@ -283,7 +269,7 @@ function filtrarPontuacoes() {
   if (!termo) {
     renderizarPontuacoes(
       obterListaVisivelGeral(),
-      "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+      "Nenhum usuário com pontuação acima de 0 encontrado."
     );
 
     return;
@@ -306,22 +292,25 @@ function filtrarPontuacoes() {
 }
 
 async function carregarPontuacoes() {
-  const semanaAtual = gerarSemanaAtual();
-
-  semanaAtualTexto.textContent = `Semana atual: ${semanaAtual}`;
+  modoPontuacaoTexto.textContent = "Exibindo pontuação geral acumulada";
 
   try {
     const membros = await listarMembros();
 
     membrosPorIdSeguro = criarMapaDeMembros(membros);
 
-    const pontuacoes = await listarPontuacaoGeral(semanaAtual);
+    /**
+     * Sem passar semana:
+     * carrega todos os documentos de pontuação geral,
+     * independente do período.
+     */
+    const pontuacoes = await listarPontuacaoGeral();
 
     pontuacoesCarregadas = agruparPontuacoesPorUser(pontuacoes);
 
     renderizarPontuacoes(
       obterListaVisivelGeral(),
-      "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+      "Nenhum usuário com pontuação acima de 0 encontrado."
     );
   } catch (erro) {
     console.error(erro);
@@ -343,7 +332,7 @@ limparBuscaBtn.addEventListener("click", () => {
 
   renderizarPontuacoes(
     obterListaVisivelGeral(),
-    "Nenhum usuário com pontuação acima de 0 encontrado nesta semana."
+    "Nenhum usuário com pontuação acima de 0 encontrado."
   );
 });
 
