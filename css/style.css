@@ -1257,3 +1257,39 @@ td {
     grid-template-columns: auto auto auto;
   }
 }
+
+
+/* CORREÇÃO DA SIDEBAR NO DESKTOP */
+
+@media (min-width: 960px) {
+  .dashboard-layout {
+    grid-template-columns: 285px minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .sidebar {
+    height: calc(100dvh - 82px);
+    min-height: calc(100dvh - 82px);
+    max-height: calc(100dvh - 82px);
+    position: sticky;
+    top: 82px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar nav {
+    flex: 1;
+    display: grid;
+    align-content: start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
+  }
+
+  .sidebar .btn,
+  .sidebar button {
+    flex-shrink: 0;
+  }
+}
