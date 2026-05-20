@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Limpeza Superadmin | Central Lunar</title>
+
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Superadmin</span>
+
+        <h1>Limpeza de Movimentações</h1>
+
+        <p>
+          Esta tela apaga apenas registros de movimentação a partir de uma data.
+          Ela não remove pontos da Pontuação Geral.
+        </p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Limpar movimentações a partir de 18/05/2026</h2>
+        </div>
+
+        <p>
+          Esta ação vai apagar registros das coleções:
+        </p>
+
+        <div class="list">
+          <div class="list-item">
+            <strong>historicoPontuacoes</strong><br>
+            Registros visíveis no histórico individual.
+          </div>
+
+          <div class="list-item">
+            <strong>ajustesManuais</strong><br>
+            Registros visíveis na tela de ajustes manuais.
+          </div>
+        </div>
+
+        <p>
+          A coleção <strong>pontuacaoGeral</strong> não será alterada.
+        </p>
+
+        <button type="button" id="limparMovimentacoesBtn" class="btn danger full">
+          Limpar movimentações a partir de 18/05/2026
+        </button>
+
+        <p id="limpezaMessage" class="message"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/limpeza-superadmin.js"></script>
+</body>
+</html>
