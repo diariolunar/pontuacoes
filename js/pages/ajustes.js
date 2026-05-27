@@ -10,9 +10,11 @@ import {
 } from "../core/auth.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   gerarSemanaAtual,
   mostrarMensagem,
+  normalizarBusca,
   normalizarUser
 } from "../core/utils.js";
 
@@ -475,11 +477,8 @@ adicionarAjusteIndividualBtn.addEventListener("click", () => {
 
   ajusteForm.reset();
 
-  mostrarMensagem(
-    ajusteIndividualMessage,
-    "Ajuste individual adicionado à lista de envio.",
-    "success"
-  );
+  ajusteIndividualMessage.textContent = "";
+  ajusteIndividualMessage.className = "message";
 });
 
 lerListaAjustesBtn.addEventListener("click", () => {
@@ -517,22 +516,16 @@ lerListaAjustesBtn.addEventListener("click", () => {
 
   ajustes.forEach((ajuste) => adicionarAjustePreparado(ajuste));
 
-  mostrarMensagem(
-    ajusteMessage,
-    `${ajustes.length} ajuste(s) preparado(s) para envio.`,
-    "success"
-  );
+  ajusteMessage.textContent = "";
+  ajusteMessage.className = "message";
 });
 
 limparAjustesPreparadosBtn.addEventListener("click", () => {
   ajustesPreparados = [];
   renderizarAjustesPreparados();
 
-  mostrarMensagem(
-    ajusteMessage,
-    "Lista de ajustes preparados limpa.",
-    "success"
-  );
+  ajusteMessage.textContent = "";
+  ajusteMessage.className = "message";
 });
 
 salvarAjustesBtn.addEventListener("click", async () => {
@@ -552,9 +545,13 @@ salvarAjustesBtn.addEventListener("click", async () => {
     return;
   }
 
-  const confirmar = window.confirm(
-    `Tem certeza que deseja salvar ${ajustesValidos.length} ajuste(s)?\n\nA Pontuação Geral será alterada imediatamente.`
-  );
+  const confirmar = await confirmarModal({
+    titulo: "Confirmar ajustes",
+    texto: `Tem certeza que deseja salvar ${ajustesValidos.length} ajuste(s)?\n\nA Pontuação Geral será alterada imediatamente.`,
+    tipo: "warning",
+    textoConfirmar: "Salvar ajustes",
+    textoCancelar: "Cancelar"
+  });
 
   if (!confirmar) {
     return;
