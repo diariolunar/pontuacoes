@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Loja Lunar | Central Lunar</title>
+
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Loja Lunar</span>
+
+      <h1>Registrar compra</h1>
+
+      <p>
+        Cole a ficha da compra, clique em ler automaticamente, confira os dados e envie.
+        A compra remove pontos do membro cadastrado.
+      </p>
+
+      <form id="lojaForm" class="form">
+        <div class="field">
+          <label for="fichaTexto">Ficha da compra</label>
+
+          <textarea
+            id="fichaTexto"
+            placeholder="Nome:
+User:
+Pontos: -
+Compra:"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerFichaBtn" class="btn secondary full">
+          Ler ficha automaticamente
+        </button>
+
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Compra encontrada</h2>
+          </div>
+
+          <div id="compraBox">
+            <div class="list-item">
+              Nenhuma compra lida ainda.
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn primary full">
+          Registrar compra
+        </button>
+      </form>
+
+      <p id="lojaMessage" class="message"></p>
+    </section>
+  </main>
+
+  <dialog
+    id="erroModal"
+    style="
+      width: min(92vw, 440px);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      border-radius: 22px;
+      padding: 0;
+      background: #12001f;
+      color: #f7efff;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+    "
+  >
+    <div style="padding: 22px;">
+      <h2 style="margin: 0 0 10px; color: #fecaca;">
+        Usuário não encontrado
+      </h2>
+
+      <p id="erroModalTexto" style="line-height: 1.6; color: #cbb8d9; margin: 0 0 18px;">
+        O usuário informado não está cadastrado.
+      </p>
+
+      <button type="button" id="fecharModalBtn" class="btn danger full">
+        Entendi
+      </button>
+    </div>
+  </dialog>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-loja-lunar.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { db } from "../config/firebase.js";
+import { db, auth } from "../config/firebase.js";
 
 import {
   collection,
@@ -9,7 +9,6 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc,
   where,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
@@ -18,6 +17,34 @@ import {
   criarIdSeguro,
   normalizarUser
 } from "../core/utils.js";
+
+const SUPERADMIN_UID = "TYd7SwJ3PeUdxZvdaNLnoxaTjDd2";
+
+function usuarioAtualEhSuperadmin() {
+  return auth.currentUser?.uid === SUPERADMIN_UID;
+}
+
+function obterMetadadosCriador() {
+  const uidAtual = auth.currentUser?.uid || null;
+  const ehSuperadmin = uidAtual === SUPERADMIN_UID;
+
+  return {
+    criadoPorUid: uidAtual,
+    ocultoParaOutros: ehSuperadmin
+  };
+}
+
+function podeExibirRegistro(registro) {
+  if (!registro?.ocultoParaOutros) {
+    return true;
+  }
+
+  return usuarioAtualEhSuperadmin();
+}
+
+function filtrarRegistrosVisiveis(lista) {
+  return lista.filter((item) => podeExibirRegistro(item));
+}
 
 function ordenarPorCriadoEmDesc(lista) {
   return [...lista].sort((a, b) => {
@@ -62,6 +89,22 @@ async function prepararMembroNoBatch(batch, { nome, user }) {
   }
 
   return userNormalizado;
+}
+
+async function buscarMembroExistente(user) {
+  const userNormalizado = normalizarUser(user);
+  const membroId = criarIdSeguro(userNormalizado);
+  const membroRef = doc(db, "membros", membroId);
+  const membroSnap = await getDoc(membroRef);
+
+  if (!membroSnap.exists()) {
+    return null;
+  }
+
+  return {
+    id: membroId,
+    ...membroSnap.data()
+  };
 }
 
 async function somarPontuacaoGeralNoBatch(batch, {
@@ -114,6 +157,7 @@ function adicionarHistoricoNoBatch(batch, {
   origem = ""
 }) {
   const historicoRef = doc(collection(db, "historicoPontuacoes"));
+  const metadadosCriador = obterMetadadosCriador();
 
   batch.set(historicoRef, {
     semana,
@@ -122,7 +166,8 @@ function adicionarHistoricoNoBatch(batch, {
     categoria,
     pontos: Number(pontos || 0),
     origem,
-    criadoEm: serverTimestamp()
+    criadoEm: serverTimestamp(),
+    ...metadadosCriador
   });
 }
 
@@ -133,12 +178,14 @@ export async function registrarPontuacaoSub({
 }) {
   const batch = writeBatch(db);
   const envioRef = doc(collection(db, "enviosSubs"));
+  const metadadosCriador = obterMetadadosCriador();
 
   batch.set(envioRef, {
     sub,
     semana,
     totalMembros: membros.length,
-    criadoEm: serverTimestamp()
+    criadoEm: serverTimestamp(),
+    ...metadadosCriador
   });
 
   for (const membro of membros) {
@@ -157,7 +204,8 @@ export async function registrarPontuacaoSub({
       nome: membro.nome,
       user: userNormalizado,
       pontos,
-      criadoEm: serverTimestamp()
+      criadoEm: serverTimestamp(),
+      ...metadadosCriador
     });
 
     await somarPontuacaoGeralNoBatch(batch, {
@@ -193,6 +241,7 @@ export async function registrarPontuacaoFixa({
 }) {
   const batch = writeBatch(db);
   const envioRef = doc(collection(db, `envios_${colecao}`));
+  const metadadosCriador = obterMetadadosCriador();
 
   batch.set(envioRef, {
     semana,
@@ -200,7 +249,8 @@ export async function registrarPontuacaoFixa({
     origem,
     pontosPorMembro: Number(pontos || 0),
     totalMembros: membros.length,
-    criadoEm: serverTimestamp()
+    criadoEm: serverTimestamp(),
+    ...metadadosCriador
   });
 
   for (const membro of membros) {
@@ -220,7 +270,8 @@ export async function registrarPontuacaoFixa({
       nome: membro.nome,
       user: userNormalizado,
       pontos: pontosNumericos,
-      criadoEm: serverTimestamp()
+      criadoEm: serverTimestamp(),
+      ...metadadosCriador
     });
 
     await somarPontuacaoGeralNoBatch(batch, {
@@ -255,13 +306,15 @@ export async function registrarPontuacaoVariavel({
 }) {
   const batch = writeBatch(db);
   const envioRef = doc(collection(db, `envios_${colecao}`));
+  const metadadosCriador = obterMetadadosCriador();
 
   batch.set(envioRef, {
     semana,
     categoria,
     origem,
     totalMembros: membros.length,
-    criadoEm: serverTimestamp()
+    criadoEm: serverTimestamp(),
+    ...metadadosCriador
   });
 
   for (const membro of membros) {
@@ -283,7 +336,8 @@ export async function registrarPontuacaoVariavel({
       user: userNormalizado,
       pontos,
       descricao,
-      criadoEm: serverTimestamp()
+      criadoEm: serverTimestamp(),
+      ...metadadosCriador
     });
 
     await somarPontuacaoGeralNoBatch(batch, {
@@ -307,6 +361,68 @@ export async function registrarPontuacaoVariavel({
   await batch.commit();
 
   return envioRef.id;
+}
+
+export async function registrarCompraLojaLunar({
+  semana,
+  nome,
+  user,
+  pontos,
+  compra
+}) {
+  const membro = await buscarMembroExistente(user);
+
+  if (!membro) {
+    const erro = new Error("Usuário não encontrado no cadastro de membros.");
+    erro.code = "membro-nao-encontrado";
+    erro.user = normalizarUser(user);
+    throw erro;
+  }
+
+  const batch = writeBatch(db);
+  const metadadosCriador = obterMetadadosCriador();
+
+  const userNormalizado = normalizarUser(membro.user || user);
+  const pontosRemovidos = Math.abs(Number(pontos || 0)) * -1;
+  const compraTexto = compra || "";
+
+  const registroRef = doc(collection(db, "lojaLunar"));
+
+  batch.set(registroRef, {
+    semana,
+    nome: membro.nome || nome,
+    user: userNormalizado,
+    pontos: pontosRemovidos,
+    compra: compraTexto,
+    criadoEm: serverTimestamp(),
+    ...metadadosCriador
+  });
+
+  await somarPontuacaoGeralNoBatch(batch, {
+    semana,
+    nome: membro.nome || nome,
+    user: userNormalizado,
+    categoria: "lojaLunar",
+    pontos: pontosRemovidos
+  });
+
+  adicionarHistoricoNoBatch(batch, {
+    semana,
+    nome: membro.nome || nome,
+    user: userNormalizado,
+    categoria: "lojaLunar",
+    pontos: pontosRemovidos,
+    origem: compraTexto ? `Loja Lunar: ${compraTexto}` : "Loja Lunar"
+  });
+
+  await batch.commit();
+
+  return {
+    nome: membro.nome || nome,
+    user: userNormalizado,
+    pontos: pontosRemovidos,
+    compra: compraTexto
+  };
 }
 
 export async function registrarLeituraLunar({
@@ -343,7 +459,7 @@ export async function registrarAjusteManual({
   user,
   tipo,
   pontos,
-  motivo
+  motivo = ""
 }) {
   const resultados = await registrarAjustesManuais({
     semana,
@@ -367,6 +483,7 @@ export async function registrarAjustesManuais({
 }) {
   const batch = writeBatch(db);
   const resultados = [];
+  const metadadosCriador = obterMetadadosCriador();
 
   for (const ajuste of ajustes) {
     const userNormalizado = await prepararMembroNoBatch(batch, {
@@ -377,6 +494,7 @@ export async function registrarAjustesManuais({
     const pontosBase = Math.abs(Number(ajuste.pontos || 0));
     const pontosFinais = ajuste.tipo === "remover" ? pontosBase * -1 : pontosBase;
     const ajusteRef = doc(collection(db, "ajustesManuais"));
+    const motivo = ajuste.motivo || "";
 
     batch.set(ajusteRef, {
       semana,
@@ -384,8 +502,9 @@ export async function registrarAjustesManuais({
       user: userNormalizado,
       tipo: ajuste.tipo,
       pontos: pontosFinais,
-      motivo: ajuste.motivo,
-      criadoEm: serverTimestamp()
+      motivo,
+      criadoEm: serverTimestamp(),
+      ...metadadosCriador
     });
 
     await somarPontuacaoGeralNoBatch(batch, {
@@ -402,7 +521,7 @@ export async function registrarAjustesManuais({
       user: userNormalizado,
       categoria: "ajustes",
       pontos: pontosFinais,
-      origem: `Ajuste manual: ${ajuste.motivo}`
+      origem: motivo ? `Ajuste manual: ${motivo}` : "Ajuste manual"
     });
 
     resultados.push({
@@ -411,7 +530,7 @@ export async function registrarAjustesManuais({
       user: userNormalizado,
       tipo: ajuste.tipo,
       pontos: pontosFinais,
-      motivo: ajuste.motivo
+      motivo
     });
   }
 
@@ -453,12 +572,12 @@ export async function somarPontuacaoGeral({
 export async function listarUltimosEnviosSubs() {
   const snapshot = await getDocs(collection(db, "enviosSubs"));
 
-  return ordenarPorCriadoEmDesc(
-    snapshot.docs.map((documento) => ({
-      id: documento.id,
-      ...documento.data()
-    }))
-  );
+  const lista = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
 }
 
 export async function listarEnviosSubs(semana = "") {
@@ -470,12 +589,12 @@ export async function listarEnviosSubs(semana = "") {
 
   const snapshot = await getDocs(consulta);
 
-  return ordenarPorCriadoEmDesc(
-    snapshot.docs.map((documento) => ({
-      id: documento.id,
-      ...documento.data()
-    }))
-  );
+  const lista = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
 }
 
 export async function listarEnviosCategoria({
@@ -491,13 +610,13 @@ export async function listarEnviosCategoria({
 
   const snapshot = await getDocs(consulta);
 
-  return ordenarPorCriadoEmDesc(
-    snapshot.docs.map((documento) => ({
-      id: documento.id,
-      colecao,
-      ...documento.data()
-    }))
-  );
+  const lista = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    colecao,
+    ...documento.data()
+  }));
+
+  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
 }
 
 export async function listarPontuacoesSubs(semana = "", sub = "") {
@@ -517,6 +636,8 @@ export async function listarPontuacoesSubs(semana = "", sub = "") {
   if (sub) {
     pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === sub);
   }
+
+  pontuacoes = filtrarRegistrosVisiveis(pontuacoes);
 
   return ordenarPorCriadoEmDesc(pontuacoes);
 }
@@ -550,12 +671,12 @@ export async function listarPontuacoesCategoria({
 
   const snapshot = await getDocs(consulta);
 
-  return ordenarPorCriadoEmDesc(
-    snapshot.docs.map((documento) => ({
-      id: documento.id,
-      ...documento.data()
-    }))
-  );
+  const lista = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
 }
 
 export async function listarAjustesManuais(semana = "") {
@@ -567,12 +688,12 @@ export async function listarAjustesManuais(semana = "") {
 
   const snapshot = await getDocs(consulta);
 
-  return ordenarPorCriadoEmDesc(
-    snapshot.docs.map((documento) => ({
-      id: documento.id,
-      ...documento.data()
-    }))
-  );
+  const lista = snapshot.docs.map((documento) => ({
+    id: documento.id,
+    ...documento.data()
+  }));
+
+  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
 }
 
 export async function listarHistoricoPorUser({
@@ -597,6 +718,8 @@ export async function listarHistoricoPorUser({
     historico = historico.filter((item) => item.semana === semana);
   }
 
+  historico = filtrarRegistrosVisiveis(historico);
+
   return ordenarPorCriadoEmDesc(historico);
 }
 
@@ -614,8 +737,17 @@ export async function limparPontuacoesCategoriaSemana({
     query(collection(db, colecao), where("semana", "==", semana))
   );
 
+  let registrosRemovidos = 0;
+
   for (const documento of registrosSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, colecao, documento.id));
+    registrosRemovidos++;
   }
 
   const enviosColecao = `envios_${colecao}`;
@@ -624,15 +756,24 @@ export async function limparPontuacoesCategoriaSemana({
     query(collection(db, enviosColecao), where("semana", "==", semana))
   );
 
+  let enviosRemovidos = 0;
+
   for (const documento of enviosSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, enviosColecao, documento.id));
+    enviosRemovidos++;
   }
 
   await batch.commit();
 
   return {
-    registrosRemovidos: registrosSnapshot.docs.length,
-    enviosRemovidos: enviosSnapshot.docs.length
+    registrosRemovidos,
+    enviosRemovidos
   };
 }
 
@@ -649,23 +790,41 @@ export async function limparPontuacoesSubsSemana({
     query(collection(db, "pontuacoesSubs"), where("semana", "==", semana))
   );
 
+  let registrosRemovidos = 0;
+
   for (const documento of pontuacoesSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, "pontuacoesSubs", documento.id));
+    registrosRemovidos++;
   }
 
   const enviosSnapshot = await getDocs(
     query(collection(db, "enviosSubs"), where("semana", "==", semana))
   );
 
+  let enviosRemovidos = 0;
+
   for (const documento of enviosSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, "enviosSubs", documento.id));
+    enviosRemovidos++;
   }
 
   await batch.commit();
 
   return {
-    registrosRemovidos: pontuacoesSnapshot.docs.length,
-    enviosRemovidos: enviosSnapshot.docs.length
+    registrosRemovidos,
+    enviosRemovidos
   };
 }
 
@@ -687,8 +846,17 @@ export async function limparPontuacoesSubSemana({
     )
   );
 
+  let registrosRemovidos = 0;
+
   for (const documento of pontuacoesSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, "pontuacoesSubs", documento.id));
+    registrosRemovidos++;
   }
 
   const enviosSnapshot = await getDocs(
@@ -699,14 +867,23 @@ export async function limparPontuacoesSubSemana({
     )
   );
 
+  let enviosRemovidos = 0;
+
   for (const documento of enviosSnapshot.docs) {
+    const dados = documento.data();
+
+    if (!podeExibirRegistro(dados)) {
+      continue;
+    }
+
     batch.delete(doc(db, "enviosSubs", documento.id));
+    enviosRemovidos++;
   }
 
   await batch.commit();
 
   return {
-    registrosRemovidos: pontuacoesSnapshot.docs.length,
-    enviosRemovidos: enviosSnapshot.docs.length
+    registrosRemovidos,
+    enviosRemovidos
   };
 }

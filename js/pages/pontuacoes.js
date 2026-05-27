@@ -32,7 +32,8 @@ const categorias = [
   { campo: "total_ascensao", nome: "Ascensão" },
   { campo: "total_redesSociais", nome: "Redes Sociais" },
   { campo: "total_divulgacoes", nome: "Divulgações" },
-  { campo: "total_ajustes", nome: "Ajustes Manuais" }
+  { campo: "total_ajustes", nome: "Ajustes Manuais" },
+  { campo: "total_lojaLunar", nome: "Loja Lunar" }
 ];
 
 function obterNumero(valor) {
@@ -43,16 +44,6 @@ function obterNumero(valor) {
   }
 
   return numero;
-}
-
-function formatarPontos(valor) {
-  const numero = obterNumero(valor);
-
-  if (numero > 0) {
-    return `+${numero}`;
-  }
-
-  return String(numero);
 }
 
 function calcularTotalPorCategorias(pontuacao) {
@@ -149,46 +140,8 @@ function agruparPontuacoesPorUser(pontuacoes) {
   });
 }
 
-function obterCategoriasComPontos(pontuacao) {
-  return categorias
-    .map((categoria) => {
-      return {
-        nome: categoria.nome,
-        pontos: obterNumero(pontuacao[categoria.campo])
-      };
-    })
-    .filter((categoria) => categoria.pontos !== 0);
-}
-
-function criarDetalhesCategorias(pontuacao) {
-  const categoriasComPontos = obterCategoriasComPontos(pontuacao);
-
-  if (categoriasComPontos.length === 0) {
-    return `
-      <div class="point-breakdown">
-        <span>Nenhuma categoria com pontos registrada ainda.</span>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="point-breakdown">
-      ${categoriasComPontos
-        .map((categoria) => {
-          return `
-            <span>
-              ${escaparHtml(categoria.nome)}: ${escaparHtml(formatarPontos(categoria.pontos))}
-            </span>
-          `;
-        })
-        .join("")}
-    </div>
-  `;
-}
-
 function criarCardPontuacao(pontuacao) {
   const totalGeral = obterNumero(pontuacao.totalGeral);
-  const historicoUrl = `./membro-historico.html?user=${encodeURIComponent(pontuacao.user || "")}`;
 
   return `
     <article class="member-admin-card member-list-card">
@@ -203,16 +156,6 @@ function criarCardPontuacao(pontuacao) {
         <div class="point-card-header">
           <strong>${totalGeral} pts</strong>
         </div>
-
-        <details class="point-details">
-          <summary>Ver categorias pontuadas</summary>
-
-          ${criarDetalhesCategorias(pontuacao)}
-        </details>
-
-        <a href="${historicoUrl}" class="btn secondary small">
-          Ver histórico
-        </a>
       </div>
     </article>
   `;
@@ -299,11 +242,6 @@ async function carregarPontuacoes() {
 
     membrosPorIdSeguro = criarMapaDeMembros(membros);
 
-    /**
-     * Sem passar semana:
-     * carrega todos os documentos de pontuação geral,
-     * independente do período.
-     */
     const pontuacoes = await listarPontuacaoGeral();
 
     pontuacoesCarregadas = agruparPontuacoesPorUser(pontuacoes);

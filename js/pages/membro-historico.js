@@ -41,7 +41,8 @@ function formatarCategoria(categoria) {
     ascensao: "Ascensão",
     redesSociais: "Redes Sociais",
     divulgacoes: "Divulgações",
-    ajustes: "Ajustes Manuais"
+    ajustes: "Ajustes Manuais",
+    lojaLunar: "Loja Lunar"
   };
 
   return mapa[categoria] || categoria || "Sem categoria";

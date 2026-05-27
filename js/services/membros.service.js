@@ -30,7 +30,8 @@ const colecoesComUser = [
   "diarioLunar",
   "ascensao",
   "redesSociais",
-  "divulgacoes"
+  "divulgacoes",
+  "lojaLunar"
 ];
 
 function documentoPertenceAoUser(documento, userIdSeguro) {
@@ -201,6 +202,17 @@ export async function buscarMembroPorId(id) {
     id,
     ...membroSnap.data()
   };
+}
+
+export async function buscarMembroPorUser(user) {
+  if (!user) {
+    return null;
+  }
+
+  const userNormalizado = normalizarUser(user);
+  const membroId = criarIdSeguro(userNormalizado);
+
+  return await buscarMembroPorId(membroId);
 }
 
 export async function atualizarMembro({
