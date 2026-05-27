@@ -6,6 +6,8 @@
 
   <title>Dashboard | Central Lunar</title>
 
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
@@ -21,18 +23,18 @@
         <h1>Dashboard</h1>
 
         <p>
-          Resumo geral da pontuação da semana atual no Projeto Lunar.
+          Resumo geral da pontuação do mês atual no Projeto Lunar.
         </p>
       </div>
 
       <div class="summary-line">
-        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="mesAtualTexto">Mês atual: carregando...</span>
       </div>
 
       <div class="cards-grid dashboard-smart-grid">
         <article class="info-card">
-          <h2>Total de pontos da semana</h2>
-          <p id="totalPontosSemana">0</p>
+          <h2>Total de pontos do mês</h2>
+          <p id="totalPontosMes">0</p>
         </article>
 
         <article class="info-card">
@@ -42,7 +44,7 @@
 
         <article class="info-card">
           <h2>Envios registrados</h2>
-          <p id="totalEnviosSemana">0</p>
+          <p id="totalEnviosMes">0</p>
         </article>
 
         <article class="info-card">
@@ -54,14 +56,6 @@
           <h2>Sub que mais pontuou</h2>
           <p id="subMaisPontos">—</p>
         </article>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <h2>Últimos envios da semana</h2>
-        </div>
-
-        <div id="ultimosEnvios" class="list"></div>
       </div>
 
       <p id="dashboardMessage" class="message"></p>
