@@ -12,21 +12,25 @@ import {
 } from "../services/pontuacoes.service.js";
 
 import {
-  escaparHtml,
+  listarMembros
+} from "../services/membros.service.js";
+
+import {
+  criarIdSeguro,
   gerarSemanaAtual,
-  mostrarMensagem
+  mostrarMensagem,
+  normalizarUser
 } from "../core/utils.js";
 
 protegerPagina();
 configurarBotaoLogout();
 
-const semanaAtualTexto = document.getElementById("semanaAtualTexto");
-const totalPontosSemana = document.getElementById("totalPontosSemana");
+const mesAtualTexto = document.getElementById("mesAtualTexto");
+const totalPontosMes = document.getElementById("totalPontosMes");
 const totalMembrosPontuados = document.getElementById("totalMembrosPontuados");
-const totalEnviosSemana = document.getElementById("totalEnviosSemana");
+const totalEnviosMes = document.getElementById("totalEnviosMes");
 const membroMaisPontos = document.getElementById("membroMaisPontos");
 const subMaisPontos = document.getElementById("subMaisPontos");
-const ultimosEnvios = document.getElementById("ultimosEnvios");
 const dashboardMessage = document.getElementById("dashboardMessage");
 
 const categoriasEnvio = [
@@ -60,124 +64,225 @@ const categoriasEnvio = [
   }
 ];
 
+let membrosPorIdSeguro = new Map();
+
+function obterMesAtual() {
+  const hoje = new Date();
+
+  const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+  return {
+    inicio,
+    fim,
+    texto: hoje.toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric"
+    })
+  };
+}
+
+function converterDataPtBrParaDate(dataTexto) {
+  const partes = String(dataTexto || "").trim().split("/");
+
+  if (partes.length !== 3) {
+    return null;
+  }
+
+  const dia = Number(partes[0]);
+  const mes = Number(partes[1]) - 1;
+  const ano = Number(partes[2]);
+
+  if (!dia || Number.isNaN(mes) || !ano) {
+    return null;
+  }
+
+  return new Date(ano, mes, dia);
+}
+
+function extrairPeriodoDaSemana(semana) {
+  const texto = String(semana || "");
+
+  const partes = texto.split(" a ");
+
+  if (partes.length !== 2) {
+    return null;
+  }
+
+  const inicio = converterDataPtBrParaDate(partes[0]);
+  const fim = converterDataPtBrParaDate(partes[1]);
+
+  if (!inicio || !fim) {
+    return null;
+  }
+
+  return {
+    inicio,
+    fim
+  };
+}
+
+function periodoSobrepoeMes(semana, mesAtual) {
+  const periodo = extrairPeriodoDaSemana(semana);
+
+  if (!periodo) {
+    return false;
+  }
+
+  return periodo.inicio <= mesAtual.fim && periodo.fim >= mesAtual.inicio;
+}
+
+function filtrarPorMesAtual(lista, mesAtual) {
+  return lista.filter((item) => {
+    return periodoSobrepoeMes(item.semana, mesAtual);
+  });
+}
+
+function criarMapaDeMembros(membros) {
+  const mapa = new Map();
+
+  for (const membro of membros) {
+    const userIdSeguro = criarIdSeguro(membro.user || "");
+
+    if (!userIdSeguro) {
+      continue;
+    }
+
+    mapa.set(userIdSeguro, {
+      id: membro.id,
+      nome: membro.nome || "",
+      user: normalizarUser(membro.user || "")
+    });
+  }
+
+  return mapa;
+}
+
+function obterNumero(valor) {
+  const numero = Number(valor || 0);
+
+  if (Number.isNaN(numero)) {
+    return 0;
+  }
+
+  return numero;
+}
+
 function calcularTotalPontos(pontuacoes) {
   return pontuacoes.reduce((total, item) => {
-    return total + Number(item.totalGeral || 0);
+    return total + obterNumero(item.totalGeral);
   }, 0);
 }
 
-function obterMembroMaisPontos(pontuacoes) {
-  if (pontuacoes.length === 0) return "—";
+function agruparPontuacoesMensaisPorMembro(pontuacoes) {
+  const mapa = new Map();
 
-  const primeiro = [...pontuacoes].sort((a, b) => {
-    return Number(b.totalGeral || 0) - Number(a.totalGeral || 0);
+  for (const pontuacao of pontuacoes) {
+    const userNormalizado = normalizarUser(pontuacao.user || "");
+    const userIdSeguro = criarIdSeguro(userNormalizado);
+    const membroOficial = membrosPorIdSeguro.get(userIdSeguro);
+
+    if (!userIdSeguro || !membroOficial) {
+      continue;
+    }
+
+    if (!mapa.has(userIdSeguro)) {
+      mapa.set(userIdSeguro, {
+        nome: membroOficial.nome,
+        user: membroOficial.user,
+        total: 0
+      });
+    }
+
+    const registro = mapa.get(userIdSeguro);
+
+    registro.nome = membroOficial.nome;
+    registro.user = membroOficial.user;
+    registro.total += obterNumero(pontuacao.totalGeral);
+  }
+
+  return Array.from(mapa.values()).filter((item) => item.total > 0);
+}
+
+function obterMembroMaisPontos(pontuacoes) {
+  const membrosPontuados = agruparPontuacoesMensaisPorMembro(pontuacoes);
+
+  if (membrosPontuados.length === 0) {
+    return "—";
+  }
+
+  const primeiro = membrosPontuados.sort((a, b) => {
+    return b.total - a.total;
   })[0];
 
-  return `${primeiro.nome || primeiro.user} (${Number(primeiro.totalGeral || 0)} pts)`;
+  return `${primeiro.nome || primeiro.user} (${primeiro.total} pts)`;
 }
 
 function obterSubMaisPontos(pontuacoesSubs) {
-  if (pontuacoesSubs.length === 0) return "—";
+  if (pontuacoesSubs.length === 0) {
+    return "—";
+  }
 
   const mapa = new Map();
 
   for (const item of pontuacoesSubs) {
     const sub = item.sub || "Sem sub";
-    const pontos = Number(item.pontos || 0);
+    const pontos = obterNumero(item.pontos);
 
     mapa.set(sub, (mapa.get(sub) || 0) + pontos);
   }
 
   const lista = Array.from(mapa.entries()).sort((a, b) => b[1] - a[1]);
 
-  if (lista.length === 0) return "—";
+  if (lista.length === 0) {
+    return "—";
+  }
 
   return `${lista[0][0]} (${lista[0][1]} pts)`;
 }
 
-function montarListaEnvios(enviosSubs, outrosEnvios) {
-  const enviosFormatados = [
-    ...enviosSubs.map((envio) => ({
-      titulo: envio.sub || "Envio de sub",
-      tipo: "Sub",
-      semana: envio.semana,
-      totalMembros: envio.totalMembros || 0,
-      criadoEm: envio.criadoEm
-    })),
-    ...outrosEnvios.map((envio) => ({
-      titulo: envio.origem || envio.categoria || "Envio",
-      tipo: envio.origem || "Categoria",
-      semana: envio.semana,
-      totalMembros: envio.totalMembros || 0,
-      criadoEm: envio.criadoEm
-    }))
-  ];
-
-  return enviosFormatados.sort((a, b) => {
-    const dataA = a.criadoEm?.seconds || 0;
-    const dataB = b.criadoEm?.seconds || 0;
-
-    return dataB - dataA;
-  });
-}
-
-function renderizarUltimosEnvios(envios) {
-  if (envios.length === 0) {
-    ultimosEnvios.innerHTML = `
-      <div class="list-item">
-        Nenhum envio registrado nesta semana.
-      </div>
-    `;
-
-    return;
-  }
-
-  ultimosEnvios.innerHTML = envios
-    .slice(0, 10)
-    .map((envio) => {
-      return `
-        <div class="list-item">
-          <strong>${escaparHtml(envio.titulo)}</strong><br>
-          Tipo: ${escaparHtml(envio.tipo)}<br>
-          Semana: ${escaparHtml(envio.semana || "")}<br>
-          Membros enviados: ${Number(envio.totalMembros || 0)}
-        </div>
-      `;
-    })
-    .join("");
+function contarEnviosMensais(enviosSubs, outrosEnvios) {
+  return enviosSubs.length + outrosEnvios.length;
 }
 
 async function carregarDashboard() {
-  const semanaAtual = gerarSemanaAtual();
+  const mesAtual = obterMesAtual();
 
-  semanaAtualTexto.textContent = `Semana atual: ${semanaAtual}`;
+  mesAtualTexto.textContent = `Mês atual: ${mesAtual.texto}`;
 
   try {
     await configurarMenuPorPermissao();
 
-    const pontuacoes = await listarPontuacaoGeral(semanaAtual);
-    const enviosSubs = await listarEnviosSubs(semanaAtual);
-    const pontuacoesSubs = await listarPontuacoesSubs(semanaAtual);
+    const membros = await listarMembros();
+
+    membrosPorIdSeguro = criarMapaDeMembros(membros);
+
+    const pontuacoesTodas = await listarPontuacaoGeral();
+    const enviosSubsTodos = await listarEnviosSubs();
+    const pontuacoesSubsTodas = await listarPontuacoesSubs();
 
     const outrosEnviosAgrupados = await Promise.all(
       categoriasEnvio.map((categoria) => {
         return listarEnviosCategoria({
-          colecao: categoria.colecao,
-          semana: semanaAtual
+          colecao: categoria.colecao
         });
       })
     );
 
-    const outrosEnvios = outrosEnviosAgrupados.flat();
-    const todosEnvios = montarListaEnvios(enviosSubs, outrosEnvios);
+    const outrosEnviosTodos = outrosEnviosAgrupados.flat();
 
-    totalPontosSemana.textContent = calcularTotalPontos(pontuacoes);
-    totalMembrosPontuados.textContent = pontuacoes.length;
-    totalEnviosSemana.textContent = todosEnvios.length;
-    membroMaisPontos.textContent = obterMembroMaisPontos(pontuacoes);
-    subMaisPontos.textContent = obterSubMaisPontos(pontuacoesSubs);
+    const pontuacoesDoMes = filtrarPorMesAtual(pontuacoesTodas, mesAtual);
+    const enviosSubsDoMes = filtrarPorMesAtual(enviosSubsTodos, mesAtual);
+    const pontuacoesSubsDoMes = filtrarPorMesAtual(pontuacoesSubsTodas, mesAtual);
+    const outrosEnviosDoMes = filtrarPorMesAtual(outrosEnviosTodos, mesAtual);
 
-    renderizarUltimosEnvios(todosEnvios);
+    const membrosPontuados = agruparPontuacoesMensaisPorMembro(pontuacoesDoMes);
+
+    totalPontosMes.textContent = calcularTotalPontos(pontuacoesDoMes);
+    totalMembrosPontuados.textContent = membrosPontuados.length;
+    totalEnviosMes.textContent = contarEnviosMensais(enviosSubsDoMes, outrosEnviosDoMes);
+    membroMaisPontos.textContent = obterMembroMaisPontos(pontuacoesDoMes);
+    subMaisPontos.textContent = obterSubMaisPontos(pontuacoesSubsDoMes);
 
     dashboardMessage.textContent = "";
     dashboardMessage.className = "message";
