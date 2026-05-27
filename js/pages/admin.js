@@ -17,7 +17,7 @@ import {
 
 import {
   criarIdSeguro,
-  gerarSemanaAtual,
+  escaparHtml,
   mostrarMensagem,
   normalizarUser
 } from "../core/utils.js";
@@ -31,6 +31,7 @@ const totalMembrosPontuados = document.getElementById("totalMembrosPontuados");
 const totalEnviosMes = document.getElementById("totalEnviosMes");
 const membroMaisPontos = document.getElementById("membroMaisPontos");
 const subMaisPontos = document.getElementById("subMaisPontos");
+const rankingSubsLista = document.getElementById("rankingSubsLista");
 const dashboardMessage = document.getElementById("dashboardMessage");
 
 const categoriasEnvio = [
@@ -62,6 +63,24 @@ const categoriasEnvio = [
     colecao: "divulgacoes",
     nome: "Divulgações"
   }
+];
+
+const subsOficiais = [
+  "A-1 Chama Eterna",
+  "A-2 Página Livre",
+  "A-3 Entre Nós",
+  "A-4 Sussurros da Aurora",
+  "A-5 Crepúsculo",
+  "A-6 Trono Profano",
+  "A-7 Margens de Mundos",
+  "A-8 Ordem do Eclipse",
+  "A-9 Cicatrizes Literárias",
+  "A-10 Quasar",
+  "A-11 Sussurros Infinitos",
+  "A-12 Estrela Polar",
+  "A-13 Luar Profano",
+  "A-14 Fragmentos da Noite",
+  "A-15 Véu Escarlate"
 ];
 
 let membrosPorIdSeguro = new Map();
@@ -102,7 +121,6 @@ function converterDataPtBrParaDate(dataTexto) {
 
 function extrairPeriodoDaSemana(semana) {
   const texto = String(semana || "");
-
   const partes = texto.split(" a ");
 
   if (partes.length !== 2) {
@@ -218,12 +236,12 @@ function obterMembroMaisPontos(pontuacoes) {
   return `${primeiro.nome || primeiro.user} (${primeiro.total} pts)`;
 }
 
-function obterSubMaisPontos(pontuacoesSubs) {
-  if (pontuacoesSubs.length === 0) {
-    return "—";
-  }
-
+function montarRankingSubs(pontuacoesSubs) {
   const mapa = new Map();
+
+  for (const sub of subsOficiais) {
+    mapa.set(sub, 0);
+  }
 
   for (const item of pontuacoesSubs) {
     const sub = item.sub || "Sem sub";
@@ -232,17 +250,62 @@ function obterSubMaisPontos(pontuacoesSubs) {
     mapa.set(sub, (mapa.get(sub) || 0) + pontos);
   }
 
-  const lista = Array.from(mapa.entries()).sort((a, b) => b[1] - a[1]);
+  return Array.from(mapa.entries())
+    .map(([sub, pontos]) => ({
+      sub,
+      pontos
+    }))
+    .filter((item) => item.pontos !== 0)
+    .sort((a, b) => {
+      if (b.pontos !== a.pontos) {
+        return b.pontos - a.pontos;
+      }
 
-  if (lista.length === 0) {
+      return a.sub.localeCompare(b.sub);
+    });
+}
+
+function obterSubMaisPontos(pontuacoesSubs) {
+  const ranking = montarRankingSubs(pontuacoesSubs);
+
+  if (ranking.length === 0) {
     return "—";
   }
 
-  return `${lista[0][0]} (${lista[0][1]} pts)`;
+  return `${ranking[0].sub} (${ranking[0].pontos} pts)`;
 }
 
 function contarEnviosMensais(enviosSubs, outrosEnvios) {
   return enviosSubs.length + outrosEnvios.length;
+}
+
+function renderizarRankingSubs(pontuacoesSubs) {
+  const ranking = montarRankingSubs(pontuacoesSubs);
+
+  if (!rankingSubsLista) {
+    return;
+  }
+
+  if (ranking.length === 0) {
+    rankingSubsLista.innerHTML = `
+      <div class="list-item">
+        Nenhum sub pontuou neste mês ainda.
+      </div>
+    `;
+
+    return;
+  }
+
+  rankingSubsLista.innerHTML = ranking
+    .map((item, index) => {
+      return `
+        <div class="list-item ranking-sub-item">
+          <strong>${index + 1}º lugar — ${escaparHtml(item.sub)}</strong><br>
+          Pontuação do mês: ${Number(item.pontos || 0)} pts
+        </div>
+      `;
+    })
+    .join("");
 }
 
 async function carregarDashboard() {
@@ -283,6 +346,8 @@ async function carregarDashboard() {
     totalEnviosMes.textContent = contarEnviosMensais(enviosSubsDoMes, outrosEnviosDoMes);
     membroMaisPontos.textContent = obterMembroMaisPontos(pontuacoesDoMes);
     subMaisPontos.textContent = obterSubMaisPontos(pontuacoesSubsDoMes);
+
+    renderizarRankingSubs(pontuacoesSubsDoMes);
 
     dashboardMessage.textContent = "";
     dashboardMessage.className = "message";
