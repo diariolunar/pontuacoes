@@ -23,7 +23,7 @@
         <h1>Fichas enviadas dos Subs</h1>
 
         <p>
-          Consulte as fichas enviadas anteriormente. As fichas antigas podem aparecer sem texto original caso tenham sido enviadas antes desta função existir.
+          Consulte os envios dos subs por semana. Para envios antigos, pode não haver o texto completo da ficha, mas o envio ainda aparece no controle semanal.
         </p>
       </div>
 
@@ -43,6 +43,14 @@
         </div>
 
         <div class="toolbar">
+          <div class="field">
+            <label for="filtroSemana">Filtrar por semana</label>
+
+            <select id="filtroSemana">
+              <option value="">Todas as semanas</option>
+            </select>
+          </div>
+
           <div class="field">
             <label for="filtroSub">Filtrar por sub</label>
 
@@ -67,8 +75,20 @@
           </div>
 
           <button type="button" id="limparFiltroBtn" class="btn secondary">
-            Limpar filtro
+            Limpar filtros
           </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Resumo da semana selecionada</h2>
+        </div>
+
+        <div id="resumoSemanaBox" class="list">
+          <div class="list-item">
+            Selecione uma semana para ver quais subs enviaram e quais ficaram pendentes.
+          </div>
         </div>
       </div>
 
