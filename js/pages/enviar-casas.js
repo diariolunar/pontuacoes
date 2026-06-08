@@ -120,29 +120,86 @@ function lerListaCasas(texto) {
 
 function criarCardMembro(membro, index) {
   return `
-    <article class="member-admin-card member-list-card casas-card" data-index="${index}">
-      <div class="member-admin-header">
+    <article
+      class="member-admin-card casas-card"
+      data-index="${index}"
+      style="
+        display: block;
+        padding: 18px;
+        margin-bottom: 14px;
+      "
+    >
+      <div
+        class="member-admin-header"
+        style="
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 16px;
+        "
+      >
         <div>
-          <h2>${escaparHtml(membro.nome || "Sem nome")}</h2>
-          <p>${escaparHtml(normalizarUser(membro.user || ""))}</p>
+          <h2 style="margin-bottom: 4px;">
+            ${escaparHtml(membro.nome || "Sem nome")}
+          </h2>
+
+          <p style="margin: 0;">
+            ${escaparHtml(normalizarUser(membro.user || ""))}
+          </p>
         </div>
+
+        <button
+          type="button"
+          class="btn danger remover-membro-casas-btn"
+          style="
+            width: auto;
+            min-width: 96px;
+            min-height: 42px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            flex: 0 0 auto;
+          "
+        >
+          Remover
+        </button>
       </div>
 
-      <div class="member-edit-form member-list-form">
-        <div class="field">
+      <div
+        style="
+          display: grid;
+          grid-template-columns: minmax(120px, 180px) 1fr;
+          gap: 14px;
+          align-items: start;
+        "
+        class="casas-fields-grid"
+      >
+        <div class="field" style="margin: 0;">
           <label>Pontos</label>
-          <input type="number" class="casas-pontos" min="1" value="${Number(membro.pontos || 0)}" />
+
+          <input
+            type="number"
+            class="casas-pontos"
+            min="1"
+            value="${Number(membro.pontos || 0)}"
+            style="
+              min-height: 48px;
+              height: 48px;
+            "
+          />
         </div>
 
-        <div class="field">
+        <div class="field" style="margin: 0;">
           <label>Motivo</label>
-          <textarea class="casas-motivo">${escaparHtml(membro.descricao || "")}</textarea>
-        </div>
 
-        <div class="member-admin-actions">
-          <button type="button" class="btn danger remover-membro-casas-btn">
-            Remover
-          </button>
+          <textarea
+            class="casas-motivo"
+            style="
+              min-height: 96px;
+              height: 96px;
+              resize: vertical;
+            "
+          >${escaparHtml(membro.descricao || "")}</textarea>
         </div>
       </div>
     </article>
@@ -162,6 +219,37 @@ function sincronizarComTela() {
       membrosPreparados[index].descricao = motivo;
     }
   });
+}
+
+function ajustarResponsivoCasas() {
+  const estiloExistente = document.getElementById("casasResponsiveStyle");
+
+  if (estiloExistente) {
+    return;
+  }
+
+  const style = document.createElement("style");
+
+  style.id = "casasResponsiveStyle";
+
+  style.textContent = `
+    @media (max-width: 760px) {
+      .casas-card .member-admin-header {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+      }
+
+      .casas-card .remover-membro-casas-btn {
+        width: 100% !important;
+      }
+
+      .casas-fields-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
 }
 
 function renderizarMembros() {
@@ -291,4 +379,5 @@ casasForm.addEventListener("submit", async (evento) => {
   }
 });
 
+ajustarResponsivoCasas();
 renderizarMembros();
