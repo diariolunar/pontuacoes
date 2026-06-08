@@ -32,6 +32,7 @@ const categorias = [
   { campo: "total_ascensao", nome: "Ascensão" },
   { campo: "total_redesSociais", nome: "Redes Sociais" },
   { campo: "total_divulgacoes", nome: "Divulgações" },
+  { campo: "total_casas", nome: "Casas" },
   { campo: "total_ajustes", nome: "Ajustes Manuais" },
   { campo: "total_lojaLunar", nome: "Loja Lunar" }
 ];

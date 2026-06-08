@@ -41,6 +41,7 @@ function formatarCategoria(categoria) {
     ascensao: "Ascensão",
     redesSociais: "Redes Sociais",
     divulgacoes: "Divulgações",
+    casas: "Casas",
     ajustes: "Ajustes Manuais",
     lojaLunar: "Loja Lunar"
   };

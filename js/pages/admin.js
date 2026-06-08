@@ -62,6 +62,10 @@ const categoriasEnvio = [
   {
     colecao: "divulgacoes",
     nome: "Divulgações"
+  },
+  {
+    colecao: "casas",
+    nome: "Casas"
   }
 ];
 

@@ -31,6 +31,7 @@ const colecoesComUser = [
   "ascensao",
   "redesSociais",
   "divulgacoes",
+  "casas",
   "lojaLunar"
 ];
 
