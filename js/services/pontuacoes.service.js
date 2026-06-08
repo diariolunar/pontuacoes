@@ -174,7 +174,8 @@ function adicionarHistoricoNoBatch(batch, {
 export async function registrarPontuacaoSub({
   sub,
   semana,
-  membros
+  membros,
+  fichaOriginal = ""
 }) {
   const batch = writeBatch(db);
   const envioRef = doc(collection(db, "enviosSubs"));
@@ -184,10 +185,10 @@ export async function registrarPontuacaoSub({
     sub,
     semana,
     totalMembros: membros.length,
+    fichaOriginal,
     criadoEm: serverTimestamp(),
     ...metadadosCriador
   });
-
   for (const membro of membros) {
     const userNormalizado = await prepararMembroNoBatch(batch, {
       nome: membro.nome,
