@@ -32,6 +32,7 @@ const categorias = [
   { campo: "total_ascensao", nome: "Ascensão" },
   { campo: "total_redesSociais", nome: "Redes Sociais" },
   { campo: "total_divulgacoes", nome: "Divulgações" },
+  { campo: "total_casas", nome: "Casas" },
   { campo: "total_ajustes", nome: "Ajustes Manuais" },
   { campo: "total_lojaLunar", nome: "Loja Lunar" }
 ];
@@ -46,16 +47,34 @@ function obterNumero(valor) {
   return numero;
 }
 
+function arredondarNumero(valor) {
+  const numero = obterNumero(valor);
+
+  return Math.round((numero + Number.EPSILON) * 100) / 100;
+}
+
+function formatarTotalGeral(valor) {
+  const arredondado = arredondarNumero(valor);
+
+  if (Number.isInteger(arredondado)) {
+    return String(arredondado);
+  }
+
+  return String(arredondado);
+}
+
 function calcularTotalPorCategorias(pontuacao) {
   const total = categorias.reduce((soma, categoria) => {
     return soma + obterNumero(pontuacao[categoria.campo]);
   }, 0);
 
-  if (total < 0) {
+  const totalArredondado = arredondarNumero(total);
+
+  if (totalArredondado < 0) {
     return 0;
   }
 
-  return total;
+  return totalArredondado;
 }
 
 function criarMapaDeMembros(membros) {
@@ -116,16 +135,20 @@ function agruparPontuacoesPorUser(pontuacoes) {
       existente[categoria.campo] =
         obterNumero(existente[categoria.campo]) +
         obterNumero(pontuacao[categoria.campo]);
+
+      existente[categoria.campo] = arredondarNumero(existente[categoria.campo]);
     }
 
     existente.totalGeral =
       obterNumero(existente.totalGeral) +
       obterNumero(pontuacao.totalGeral);
+
+    existente.totalGeral = arredondarNumero(existente.totalGeral);
   }
 
   return Array.from(mapa.values()).map((pontuacao) => {
     const totalCategorias = calcularTotalPorCategorias(pontuacao);
-    const totalAntigo = obterNumero(pontuacao.totalGeral);
+    const totalAntigo = arredondarNumero(pontuacao.totalGeral);
 
     const temCategoriaRegistrada = categorias.some((categoria) => {
       return obterNumero(pontuacao[categoria.campo]) !== 0;
@@ -141,7 +164,7 @@ function agruparPontuacoesPorUser(pontuacoes) {
 }
 
 function criarCardPontuacao(pontuacao) {
-  const totalGeral = obterNumero(pontuacao.totalGeral);
+  const totalGeral = formatarTotalGeral(pontuacao.totalGeral);
 
   return `
     <article class="member-admin-card member-list-card">
@@ -154,7 +177,7 @@ function criarCardPontuacao(pontuacao) {
 
       <div class="point-card-content">
         <div class="point-card-header">
-          <strong>${totalGeral} pts</strong>
+          <strong>${escaparHtml(totalGeral)} pts</strong>
         </div>
       </div>
     </article>
@@ -177,7 +200,10 @@ function ordenarPontuacoes(lista) {
   });
 }
 
-function renderizarPontuacoes(lista, mensagemVazia = "Nenhum usuário encontrado com essa busca.") {
+function renderizarPontuacoes(
+  lista,
+  mensagemVazia = "Nenhum usuário encontrado com essa busca."
+) {
   totalUsuariosTexto.textContent = `Usuários encontrados: ${lista.length}`;
 
   if (lista.length === 0) {
