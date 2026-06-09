@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Fichas dos Subs | Central Lunar</title>
+
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Histórico de fichas</span>
+
+        <h1>Fichas enviadas dos Subs</h1>
+
+        <p>
+          Consulte os envios dos subs por semana. Para envios antigos, pode não haver o texto completo da ficha, mas o envio ainda aparece no controle semanal.
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <a href="./subs.html" class="btn secondary">
+          Voltar para Subs
+        </a>
+
+        <a href="./enviar-sub.html" class="btn secondary">
+          Enviar nova ficha
+        </a>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Filtros</h2>
+        </div>
+
+        <div class="toolbar">
+          <div class="field">
+            <label for="filtroSemana">Filtrar por semana</label>
+
+            <select id="filtroSemana">
+              <option value="">Todas as semanas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filtroSub">Filtrar por sub</label>
+
+            <select id="filtroSub">
+              <option value="">Todos os subs</option>
+              <option value="A-1 Chama Eterna">A-1 - Chama Eterna</option>
+              <option value="A-2 Página Livre">A-2 - Página Livre</option>
+              <option value="A-3 Entre Nós">A-3 - Entre Nós</option>
+              <option value="A-4 Sussurros da Aurora">A-4 - Sussurros da Aurora</option>
+              <option value="A-5 Crepúsculo">A-5 - Crepúsculo</option>
+              <option value="A-6 Trono Profano">A-6 - Trono Profano</option>
+              <option value="A-7 Margens de Mundos">A-7 - Margens de Mundos</option>
+              <option value="A-8 Ordem do Eclipse">A-8 - Ordem do Eclipse</option>
+              <option value="A-9 Cicatrizes Literárias">A-9 - Cicatrizes Literárias</option>
+              <option value="A-10 Quasar">A-10 - Quasar</option>
+              <option value="A-11 Sussurros Infinitos">A-11 - Sussurros Infinitos</option>
+              <option value="A-12 Estrela Polar">A-12 - Estrela Polar</option>
+              <option value="A-13 Luar Profano">A-13 - Luar Profano</option>
+              <option value="A-14 Fragmentos da Noite">A-14 - Fragmentos da Noite</option>
+              <option value="A-15 Véu Escarlate">A-15 - Véu Escarlate</option>
+            </select>
+          </div>
+
+          <button type="button" id="limparFiltroBtn" class="btn secondary">
+            Limpar filtros
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Resumo da semana selecionada</h2>
+        </div>
+
+        <div id="resumoSemanaBox" class="list">
+          <div class="list-item">
+            Selecione uma semana para ver quais subs enviaram e quais ficaram pendentes.
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-line">
+        <span id="totalFichasTexto">Fichas encontradas: 0</span>
+      </div>
+
+      <div id="fichasLista" class="list"></div>
+
+      <p id="fichasMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/fichas-subs.js"></script>
+</body>
+</html>

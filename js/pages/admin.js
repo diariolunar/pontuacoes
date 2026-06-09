@@ -29,7 +29,6 @@ const mesAtualTexto = document.getElementById("mesAtualTexto");
 const totalPontosMes = document.getElementById("totalPontosMes");
 const totalMembrosPontuados = document.getElementById("totalMembrosPontuados");
 const totalEnviosMes = document.getElementById("totalEnviosMes");
-const membroMaisPontos = document.getElementById("membroMaisPontos");
 const subMaisPontos = document.getElementById("subMaisPontos");
 const rankingSubsLista = document.getElementById("rankingSubsLista");
 const dashboardMessage = document.getElementById("dashboardMessage");
@@ -62,6 +61,10 @@ const categoriasEnvio = [
   {
     colecao: "divulgacoes",
     nome: "Divulgações"
+  },
+  {
+    colecao: "casas",
+    nome: "Casas"
   }
 ];
 
@@ -222,20 +225,6 @@ function agruparPontuacoesMensaisPorMembro(pontuacoes) {
   return Array.from(mapa.values()).filter((item) => item.total > 0);
 }
 
-function obterMembroMaisPontos(pontuacoes) {
-  const membrosPontuados = agruparPontuacoesMensaisPorMembro(pontuacoes);
-
-  if (membrosPontuados.length === 0) {
-    return "—";
-  }
-
-  const primeiro = membrosPontuados.sort((a, b) => {
-    return b.total - a.total;
-  })[0];
-
-  return `${primeiro.nome || primeiro.user} (${primeiro.total} pts)`;
-}
-
 function montarRankingSubs(pontuacoesSubs) {
   const mapa = new Map();
 
@@ -344,7 +333,6 @@ async function carregarDashboard() {
     totalPontosMes.textContent = calcularTotalPontos(pontuacoesDoMes);
     totalMembrosPontuados.textContent = membrosPontuados.length;
     totalEnviosMes.textContent = contarEnviosMensais(enviosSubsDoMes, outrosEnviosDoMes);
-    membroMaisPontos.textContent = obterMembroMaisPontos(pontuacoesDoMes);
     subMaisPontos.textContent = obterSubMaisPontos(pontuacoesSubsDoMes);
 
     renderizarRankingSubs(pontuacoesSubsDoMes);

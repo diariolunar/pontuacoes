@@ -522,10 +522,13 @@ subForm.addEventListener("submit", async (evento) => {
       "success"
     );
 
+    const fichaOriginal = document.getElementById("fichaTexto").value.trim();
+
     await registrarPontuacaoSub({
       sub,
       semana,
-      membros
+      membros,
+      fichaOriginal
     });
 
     mostrarMensagem(

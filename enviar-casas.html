@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Casas | Central Lunar</title>
+
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Casas</span>
+
+      <h1>Enviar pontos das Casas</h1>
+
+      <p>
+        Cole a lista de pontuação das casas. O sistema vai ler nome, user, pontos e motivo automaticamente.
+      </p>
+
+      <form id="casasForm" class="form">
+        <div class="field">
+          <label for="listaCasasTexto">Lista de pontos</label>
+
+          <textarea
+            id="listaCasasTexto"
+            placeholder="Nome: Joaquim
+User: joaquimpader
+Pontos: 260 pontos
+Motivo: Concluiu o Cine Nix e cumpriu os Desafios do 1º e do 2º Circulo do Inferno
+
+Nome: João
+User: jhony_1222
+Pontos: 220 pontos
+Motivo: Concluiu o Cine Nix e cumpriu os Desafio do 2º Circulo do Inferno"
+          ></textarea>
+        </div>
+
+        <button type="button" id="lerListaCasasBtn" class="btn secondary full">
+          Ler lista automaticamente
+        </button>
+
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Membros encontrados</h2>
+          </div>
+
+          <div id="membrosCasasLista">
+            <div class="list-item">
+              Nenhum membro lido ainda.
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn primary full">
+          Enviar pontos das Casas
+        </button>
+      </form>
+
+      <p id="casasMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-casas.js"></script>
+</body>
+</html>

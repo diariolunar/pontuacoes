@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Casas | Central Lunar</title>
+
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+
+  <main class="dashboard-layout">
+    <div id="sidebar"></div>
+
+    <section class="dashboard-content">
+      <div class="page-title">
+        <span class="tag">Painel Administrativo</span>
+
+        <h1>Casas</h1>
+
+        <p>
+          Consulte os pontos das Casas registrados na semana atual.
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <a href="./enviar-casas.html" class="btn secondary">
+          Enviar pontos das Casas
+        </a>
+
+        <button type="button" id="limparSemanaBtn" class="btn danger">
+          Limpar lista da semana
+        </button>
+      </div>
+
+      <div class="summary-line">
+        <span id="semanaAtualTexto">Semana atual: carregando...</span>
+        <span id="totalRegistrosTexto">Registros encontrados: 0</span>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>User</th>
+              <th>Pontos</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+
+          <tbody id="casasTabela">
+            <tr>
+              <td colspan="4">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p id="casasMessage" class="message"></p>
+    </section>
+  </main>
+
+  <div id="footer"></div>
+
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/casas.js"></script>
+</body>
+</html>
