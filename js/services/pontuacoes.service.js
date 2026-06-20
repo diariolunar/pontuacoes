@@ -34,16 +34,12 @@ function obterMetadadosCriador() {
   };
 }
 
-function podeExibirRegistro(registro) {
+function usuarioAtualPodeRemoverRegistro(registro) {
   if (!registro?.ocultoParaOutros) {
     return true;
   }
 
   return usuarioAtualEhSuperadmin();
-}
-
-function filtrarRegistrosVisiveis(lista) {
-  return lista.filter((item) => podeExibirRegistro(item));
 }
 
 function ordenarPorCriadoEmDesc(lista) {
@@ -578,7 +574,7 @@ export async function listarUltimosEnviosSubs() {
     ...documento.data()
   }));
 
-  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
+  return ordenarPorCriadoEmDesc(lista);
 }
 
 export async function listarEnviosSubs(semana = "") {
@@ -595,7 +591,7 @@ export async function listarEnviosSubs(semana = "") {
     ...documento.data()
   }));
 
-  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
+  return ordenarPorCriadoEmDesc(lista);
 }
 
 export async function listarEnviosCategoria({
@@ -617,7 +613,7 @@ export async function listarEnviosCategoria({
     ...documento.data()
   }));
 
-  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
+  return ordenarPorCriadoEmDesc(lista);
 }
 
 export async function listarPontuacoesSubs(semana = "", sub = "") {
@@ -637,8 +633,6 @@ export async function listarPontuacoesSubs(semana = "", sub = "") {
   if (sub) {
     pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === sub);
   }
-
-  pontuacoes = filtrarRegistrosVisiveis(pontuacoes);
 
   return ordenarPorCriadoEmDesc(pontuacoes);
 }
@@ -677,7 +671,7 @@ export async function listarPontuacoesCategoria({
     ...documento.data()
   }));
 
-  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
+  return ordenarPorCriadoEmDesc(lista);
 }
 
 export async function listarAjustesManuais(semana = "") {
@@ -694,7 +688,7 @@ export async function listarAjustesManuais(semana = "") {
     ...documento.data()
   }));
 
-  return ordenarPorCriadoEmDesc(filtrarRegistrosVisiveis(lista));
+  return ordenarPorCriadoEmDesc(lista);
 }
 
 export async function listarHistoricoPorUser({
@@ -719,8 +713,6 @@ export async function listarHistoricoPorUser({
     historico = historico.filter((item) => item.semana === semana);
   }
 
-  historico = filtrarRegistrosVisiveis(historico);
-
   return ordenarPorCriadoEmDesc(historico);
 }
 
@@ -743,7 +735,7 @@ export async function limparPontuacoesCategoriaSemana({
   for (const documento of registrosSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
@@ -762,7 +754,7 @@ export async function limparPontuacoesCategoriaSemana({
   for (const documento of enviosSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
@@ -796,7 +788,7 @@ export async function limparPontuacoesSubsSemana({
   for (const documento of pontuacoesSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
@@ -813,7 +805,7 @@ export async function limparPontuacoesSubsSemana({
   for (const documento of enviosSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
@@ -852,7 +844,7 @@ export async function limparPontuacoesSubSemana({
   for (const documento of pontuacoesSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
@@ -873,7 +865,7 @@ export async function limparPontuacoesSubSemana({
   for (const documento of enviosSnapshot.docs) {
     const dados = documento.data();
 
-    if (!podeExibirRegistro(dados)) {
+    if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
     }
 
