@@ -10,6 +10,7 @@ import {
 } from "../core/auth.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   gerarSemanaAtual,
   mostrarMensagem
@@ -91,9 +92,13 @@ export function iniciarListaCategoriaVariavel({
   limparSemanaBtn.addEventListener("click", async () => {
     const semanaAtual = gerarSemanaAtual();
 
-    const confirmar = window.confirm(
-      `Tem certeza que deseja limpar a lista de ${origem} da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`
-    );
+    const confirmar = await confirmarModal({
+      titulo: `Limpar lista de ${origem}`,
+      texto: `Tem certeza que deseja limpar a lista de ${origem} da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`,
+      tipo: "warning",
+      textoConfirmar: "Limpar lista",
+      textoCancelar: "Cancelar"
+    });
 
     if (!confirmar) {
       return;

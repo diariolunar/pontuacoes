@@ -10,6 +10,10 @@ import {
   buscarUsuarioSistema
 } from "../services/usuarios.service.js";
 
+import {
+  componentesProntos
+} from "./components.js";
+
 export async function fazerLogin(email, senha) {
   return await signInWithEmailAndPassword(auth, email, senha);
 }
@@ -54,32 +58,49 @@ export function protegerPagina() {
 }
 
 export async function obterUsuarioAtualSistema() {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, async (usuarioAuth) => {
-      if (!usuarioAuth) {
-        resolve(null);
-        return;
-      }
+  return new Promise((resolve, reject) => {
+    let cancelarObservador = () => {};
 
-      const usuarioSistema = await buscarUsuarioSistema(usuarioAuth.uid);
+    cancelarObservador = onAuthStateChanged(
+      auth,
+      async (usuarioAuth) => {
+        cancelarObservador();
 
-      if (!usuarioSistema || usuarioSistema.ativo !== true) {
-        resolve(null);
-        return;
-      }
+        try {
+          if (!usuarioAuth) {
+            resolve(null);
+            return;
+          }
 
-      resolve({
-        auth: usuarioAuth,
-        sistema: usuarioSistema
-      });
-    });
+          const usuarioSistema = await buscarUsuarioSistema(usuarioAuth.uid);
+
+          if (!usuarioSistema || usuarioSistema.ativo !== true) {
+            resolve(null);
+            return;
+          }
+
+          resolve({
+            auth: usuarioAuth,
+            sistema: usuarioSistema
+          });
+        } catch (erro) {
+          reject(erro);
+        }
+      },
+      reject
+    );
   });
 }
 
 export async function exigirSuperadmin() {
   const usuarioAtual = await obterUsuarioAtualSistema();
 
-  if (!usuarioAtual || usuarioAtual.sistema.role !== "superadmin") {
+  if (!usuarioAtual) {
+    window.location.href = "./login.html";
+    return null;
+  }
+
+  if (usuarioAtual.sistema.role !== "superadmin") {
     window.location.href = "./admin.html";
     return null;
   }
@@ -88,6 +109,8 @@ export async function exigirSuperadmin() {
 }
 
 export async function configurarMenuPorPermissao() {
+  await componentesProntos;
+
   const usuarioAtual = await obterUsuarioAtualSistema();
 
   const superadminItems = document.querySelectorAll("[data-superadmin-only]");
@@ -112,14 +135,17 @@ export async function configurarMenuPorPermissao() {
   }
 }
 
-export function configurarBotaoLogout() {
-  setTimeout(() => {
-    const logoutBtn = document.getElementById("logoutBtn");
+export async function configurarBotaoLogout() {
+  await componentesProntos;
 
-    if (!logoutBtn) return;
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    logoutBtn.addEventListener("click", async () => {
-      await fazerLogout();
-    });
-  }, 300);
+  if (!logoutBtn || logoutBtn.dataset.logoutConfigurado === "true") {
+    return;
+  }
+
+  logoutBtn.dataset.logoutConfigurado = "true";
+  logoutBtn.addEventListener("click", async () => {
+    await fazerLogout();
+  });
 }

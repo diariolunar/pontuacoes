@@ -4,6 +4,7 @@ import {
 } from "../services/pontuacoes.service.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   gerarSemanaAtual,
   mostrarMensagem
@@ -130,9 +131,13 @@ limparSemanaSubsBtn.addEventListener("click", async () => {
     return;
   }
 
-  const confirmar = window.confirm(
-    `Tem certeza que deseja limpar TODAS as listas dos subs da semana ${semanaAtual}?\n\nIsso apagará os registros internos dos subs e os envios da semana, mas NÃO remove os pontos da Pontuação Geral.`
-  );
+  const confirmar = await confirmarModal({
+    titulo: "Limpar listas dos subs",
+    texto: `Tem certeza que deseja limpar TODAS as listas dos subs da semana ${semanaAtual}?\n\nIsso apagará os registros internos dos subs e os envios da semana, mas NÃO remove os pontos da Pontuação Geral.`,
+    tipo: "warning",
+    textoConfirmar: "Limpar listas",
+    textoCancelar: "Cancelar"
+  });
 
   if (!confirmar) {
     return;

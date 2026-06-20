@@ -27,7 +27,6 @@ const userMembro = document.getElementById("userMembro");
 const tipoAjuste = document.getElementById("tipoAjuste");
 const pontosAjuste = document.getElementById("pontosAjuste");
 const motivoAjuste = document.getElementById("motivoAjuste");
-const adicionarAjusteIndividualBtn = document.getElementById("adicionarAjusteIndividualBtn");
 const ajusteIndividualMessage = document.getElementById("ajusteIndividualMessage");
 
 const listaAjustesTexto = document.getElementById("listaAjustesTexto");
@@ -450,7 +449,9 @@ async function carregarAjustes() {
   }
 }
 
-adicionarAjusteIndividualBtn.addEventListener("click", () => {
+ajusteForm.addEventListener("submit", (evento) => {
+  evento.preventDefault();
+
   const nome = nomeMembro.value.trim();
   const user = userMembro.value.trim();
   const tipo = tipoAjuste.value;

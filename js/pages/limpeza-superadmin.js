@@ -1,14 +1,11 @@
 import {
-  auth
-} from "../config/firebase.js";
-
-import {
   configurarBotaoLogout,
   configurarMenuPorPermissao,
-  protegerPagina
+  exigirSuperadmin
 } from "../core/auth.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   mostrarMensagem,
   normalizarBusca
@@ -19,10 +16,7 @@ import {
   listarRegistrosDeMovimentacao
 } from "../services/limpeza.service.js";
 
-protegerPagina();
 configurarBotaoLogout();
-
-const SUPERADMIN_UID = "TYd7SwJ3PeUdxZvdaNLnoxaTjDd2";
 
 const buscaRegistro = document.getElementById("buscaRegistro");
 const limparBuscaBtn = document.getElementById("limparBuscaBtn");
@@ -33,19 +27,7 @@ const registrosLista = document.getElementById("registrosLista");
 const limpezaMessage = document.getElementById("limpezaMessage");
 
 let registrosCarregados = [];
-
-function usuarioAtualEhSuperadmin() {
-  return auth.currentUser?.uid === SUPERADMIN_UID;
-}
-
-function aguardarLogin() {
-  return new Promise((resolve) => {
-    const cancelarObservador = auth.onAuthStateChanged((usuario) => {
-      cancelarObservador();
-      resolve(usuario);
-    });
-  });
-}
+let acessoSuperadminConfirmado = false;
 
 function formatarData(valor) {
   if (!valor) {
@@ -212,9 +194,13 @@ function configurarBotoesExcluir() {
 
       const nome = card.querySelector("h2")?.textContent || "este registro";
 
-      const confirmar = window.confirm(
-        `Tem certeza que deseja apagar ${nome}?\n\nIsso remove apenas este registro de movimentação.\nA Pontuação Geral NÃO será alterada.`
-      );
+      const confirmar = await confirmarModal({
+        titulo: "Apagar registro",
+        texto: `Tem certeza que deseja apagar ${nome}?\n\nIsso remove apenas este registro de movimentação.\nA Pontuação Geral NÃO será alterada.`,
+        tipo: "warning",
+        textoConfirmar: "Apagar registro",
+        textoCancelar: "Cancelar"
+      });
 
       if (!confirmar) {
         return;
@@ -258,15 +244,7 @@ function configurarBotoesExcluir() {
 }
 
 async function carregarRegistros() {
-  if (!usuarioAtualEhSuperadmin()) {
-    registrosLista.innerHTML = "";
-
-    mostrarMensagem(
-      limpezaMessage,
-      "Acesso negado. Esta página só pode ser usada pelo superadmin.",
-      "error"
-    );
-
+  if (!acessoSuperadminConfirmado) {
     return;
   }
 
@@ -298,11 +276,9 @@ async function carregarRegistros() {
 }
 
 async function iniciarPagina() {
-  await configurarMenuPorPermissao();
+  const usuarioAtual = await exigirSuperadmin();
 
-  const usuario = await aguardarLogin();
-
-  if (!usuario || !usuarioAtualEhSuperadmin()) {
+  if (!usuarioAtual) {
     registrosLista.innerHTML = "";
 
     buscaRegistro.disabled = true;
@@ -310,15 +286,12 @@ async function iniciarPagina() {
     limparBuscaBtn.disabled = true;
     recarregarBtn.disabled = true;
 
-    mostrarMensagem(
-      limpezaMessage,
-      "Acesso negado. Entre com o usuário superadmin para usar esta página.",
-      "error"
-    );
-
     return;
   }
 
+  acessoSuperadminConfirmado = true;
+
+  await configurarMenuPorPermissao();
   await carregarRegistros();
 }
 

@@ -22,10 +22,14 @@ async function carregarComponente(id, caminho) {
 
 function configurarTituloEFavicon() {
   const nomeSistema = "Central Lunar";
+  const nomesConhecidos = [
+    nomeSistema,
+    "Central de Pontuação Lunar"
+  ];
 
   if (!document.title || document.title.trim() === "") {
     document.title = nomeSistema;
-  } else if (!document.title.includes(nomeSistema)) {
+  } else if (!nomesConhecidos.some((nome) => document.title.includes(nome))) {
     document.title = `${document.title} | ${nomeSistema}`;
   }
 
@@ -123,7 +127,7 @@ function criarModalGlobalSistema() {
   document.body.appendChild(modal);
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function iniciarComponentes() {
   configurarTituloEFavicon();
   criarModalGlobalSistema();
 
@@ -132,4 +136,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     carregarComponente("sidebar", "./components/sidebar.html"),
     carregarComponente("footer", "./components/footer.html")
   ]);
+}
+
+export const componentesProntos = new Promise((resolve) => {
+  const iniciar = async () => {
+    await iniciarComponentes();
+    resolve();
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar, { once: true });
+    return;
+  }
+
+  iniciar();
 });

@@ -10,6 +10,7 @@ import {
 } from "../core/auth.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   gerarSemanaAtual,
   mostrarMensagem,
@@ -109,9 +110,13 @@ async function carregarLeituraLunar() {
 limparSemanaBtn.addEventListener("click", async () => {
   const semanaAtual = gerarSemanaAtual();
 
-  const confirmar = window.confirm(
-    `Tem certeza que deseja limpar a lista da Leitura Lunar da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`
-  );
+  const confirmar = await confirmarModal({
+    titulo: "Limpar Leitura Lunar",
+    texto: `Tem certeza que deseja limpar a lista da Leitura Lunar da semana ${semanaAtual}?\n\nIsso NÃO remove os pontos da Pontuação Geral.`,
+    tipo: "warning",
+    textoConfirmar: "Limpar lista",
+    textoCancelar: "Cancelar"
+  });
 
   if (!confirmar) {
     return;

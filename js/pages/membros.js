@@ -12,6 +12,7 @@ import {
 } from "../core/auth.js";
 
 import {
+  confirmarModal,
   escaparHtml,
   mostrarMensagem,
   normalizarBusca,
@@ -229,9 +230,13 @@ function configurarBotoesExcluir() {
       const nome = card.querySelector(".edit-nome").value.trim();
       const user = card.querySelector(".edit-user").value.trim();
 
-      const confirmar = window.confirm(
-        `Tem certeza que deseja excluir ${nome} (${user})?\n\nIsso vai apagar o cadastro, a pontuação geral, o histórico e todos os registros de pontuação desse membro.`
-      );
+      const confirmar = await confirmarModal({
+        titulo: "Excluir membro",
+        texto: `Tem certeza que deseja excluir ${nome} (${user})?\n\nIsso vai apagar o cadastro, a pontuação geral, o histórico e todos os registros de pontuação desse membro.`,
+        tipo: "warning",
+        textoConfirmar: "Excluir membro",
+        textoCancelar: "Cancelar"
+      });
 
       if (!confirmar) {
         return;

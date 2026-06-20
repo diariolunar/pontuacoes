@@ -7,6 +7,7 @@ import {
 } from "../services/pontuacoes.service.js";
 
 import {
+  confirmarModal,
   converterPontuacao,
   escaparHtml,
   gerarSemanaAtual,
@@ -243,9 +244,16 @@ lojaForm.addEventListener("submit", async (evento) => {
     return;
   }
 
-  const confirmar = window.confirm(
-    `Confirmar compra de ${compraPreparada.nome} (${compraPreparada.user})?\n\nSerão removidos ${compraPreparada.pontos} pontos.`
-  );
+  const quantidadePontos = Number(compraPreparada.pontos || 0);
+  const pontosTexto = `${quantidadePontos} ${quantidadePontos === 1 ? "ponto" : "pontos"}`;
+
+  const confirmar = await confirmarModal({
+    titulo: "Confirmar compra",
+    texto: `Confirmar compra de ${compraPreparada.nome} (${compraPreparada.user})?\n\nSerão removidos ${pontosTexto}.`,
+    tipo: "warning",
+    textoConfirmar: "Registrar compra",
+    textoCancelar: "Cancelar"
+  });
 
   if (!confirmar) {
     return;

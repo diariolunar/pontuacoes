@@ -3,6 +3,10 @@ export function normalizarUser(user) {
 
   const userLimpo = String(user).trim().toLowerCase();
 
+  if (!userLimpo || userLimpo === "@") {
+    return "";
+  }
+
   if (userLimpo.startsWith("@")) {
     return userLimpo;
   }
@@ -79,7 +83,7 @@ export function gerarSemanaAtual() {
 }
 
 export function escaparHtml(valor) {
-  return String(valor || "")
+  return String(valor ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
