@@ -18,6 +18,10 @@ import {
   normalizarUser
 } from "../core/utils.js";
 
+import {
+  normalizarNomeSub
+} from "../core/subs.js";
+
 const SUPERADMIN_UID = "TYd7SwJ3PeUdxZvdaNLnoxaTjDd2";
 
 function usuarioAtualEhSuperadmin() {
@@ -176,9 +180,10 @@ export async function registrarPontuacaoSub({
   const batch = writeBatch(db);
   const envioRef = doc(collection(db, "enviosSubs"));
   const metadadosCriador = obterMetadadosCriador();
+  const subNormalizado = normalizarNomeSub(sub);
 
   batch.set(envioRef, {
-    sub,
+    sub: subNormalizado,
     semana,
     totalMembros: membros.length,
     fichaOriginal,
@@ -197,7 +202,7 @@ export async function registrarPontuacaoSub({
     batch.set(pontuacaoRef, {
       envioId: envioRef.id,
       semana,
-      sub,
+      sub: subNormalizado,
       nome: membro.nome,
       user: userNormalizado,
       pontos,
@@ -219,7 +224,7 @@ export async function registrarPontuacaoSub({
       user: userNormalizado,
       categoria: "subs",
       pontos,
-      origem: sub
+      origem: subNormalizado
     });
   }
 
@@ -572,6 +577,9 @@ export async function listarUltimosEnviosSubs() {
   const lista = snapshot.docs.map((documento) => ({
     id: documento.id,
     ...documento.data()
+  })).map((envio) => ({
+    ...envio,
+    sub: normalizarNomeSub(envio.sub)
   }));
 
   return ordenarPorCriadoEmDesc(lista);
@@ -589,6 +597,9 @@ export async function listarEnviosSubs(semana = "") {
   const lista = snapshot.docs.map((documento) => ({
     id: documento.id,
     ...documento.data()
+  })).map((envio) => ({
+    ...envio,
+    sub: normalizarNomeSub(envio.sub)
   }));
 
   return ordenarPorCriadoEmDesc(lista);
@@ -628,10 +639,15 @@ export async function listarPontuacoesSubs(semana = "", sub = "") {
   let pontuacoes = snapshot.docs.map((documento) => ({
     id: documento.id,
     ...documento.data()
+  })).map((pontuacao) => ({
+    ...pontuacao,
+    sub: normalizarNomeSub(pontuacao.sub)
   }));
 
   if (sub) {
-    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === sub);
+    const subNormalizado = normalizarNomeSub(sub);
+
+    pontuacoes = pontuacoes.filter((pontuacao) => pontuacao.sub === subNormalizado);
   }
 
   return ordenarPorCriadoEmDesc(pontuacoes);
@@ -830,12 +846,12 @@ export async function limparPontuacoesSubSemana({
   }
 
   const batch = writeBatch(db);
+  const subNormalizado = normalizarNomeSub(sub);
 
   const pontuacoesSnapshot = await getDocs(
     query(
       collection(db, "pontuacoesSubs"),
-      where("semana", "==", semana),
-      where("sub", "==", sub)
+      where("semana", "==", semana)
     )
   );
 
@@ -843,6 +859,10 @@ export async function limparPontuacoesSubSemana({
 
   for (const documento of pontuacoesSnapshot.docs) {
     const dados = documento.data();
+
+    if (normalizarNomeSub(dados.sub) !== subNormalizado) {
+      continue;
+    }
 
     if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;
@@ -855,8 +875,7 @@ export async function limparPontuacoesSubSemana({
   const enviosSnapshot = await getDocs(
     query(
       collection(db, "enviosSubs"),
-      where("semana", "==", semana),
-      where("sub", "==", sub)
+      where("semana", "==", semana)
     )
   );
 
@@ -864,6 +883,10 @@ export async function limparPontuacoesSubSemana({
 
   for (const documento of enviosSnapshot.docs) {
     const dados = documento.data();
+
+    if (normalizarNomeSub(dados.sub) !== subNormalizado) {
+      continue;
+    }
 
     if (!usuarioAtualPodeRemoverRegistro(dados)) {
       continue;

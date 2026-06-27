@@ -22,6 +22,10 @@ import {
   normalizarUser
 } from "../core/utils.js";
 
+import {
+  SUBS_OFICIAIS
+} from "../core/subs.js";
+
 protegerPagina();
 configurarBotaoLogout();
 
@@ -68,23 +72,7 @@ const categoriasEnvio = [
   }
 ];
 
-const subsOficiais = [
-  "A-1 Chama Eterna",
-  "A-2 Página Livre",
-  "A-3 Entre Nós",
-  "A-4 Sussurros da Aurora",
-  "A-5 Crepúsculo",
-  "A-6 Trono Profano",
-  "A-7 Margens de Mundos",
-  "A-8 Ordem do Eclipse",
-  "A-9 Cicatrizes Literárias",
-  "A-10 Quasar",
-  "A-11 Sussurros Infinitos",
-  "A-12 Estrela Polar",
-  "A-13 Luar Profano",
-  "A-14 Fragmentos da Noite",
-  "A-15 Véu Escarlate"
-];
+const subsOficiais = SUBS_OFICIAIS.map((sub) => sub.nome);
 
 let membrosPorIdSeguro = new Map();
 

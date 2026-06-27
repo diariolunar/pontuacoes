@@ -12,6 +12,11 @@ import {
 } from "../core/utils.js";
 
 import {
+  normalizarNomeSub,
+  obterTituloSub
+} from "../core/subs.js";
+
+import {
   protegerPagina,
   configurarBotaoLogout,
   configurarMenuPorPermissao
@@ -102,7 +107,7 @@ async function carregarSub() {
 
   semanaAtualTexto.textContent = `Semana atual: ${semanaAtual}`;
 
-  subAtual = obterSubDaUrl();
+  subAtual = normalizarNomeSub(obterSubDaUrl());
 
   if (!subAtual) {
     subTitulo.textContent = "Sub não informado";
@@ -119,7 +124,7 @@ async function carregarSub() {
     return;
   }
 
-  subTitulo.textContent = subAtual;
+  subTitulo.textContent = obterTituloSub(subAtual);
 
   try {
     await configurarMenuPorPermissao();

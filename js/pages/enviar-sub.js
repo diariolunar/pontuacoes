@@ -10,6 +10,10 @@ import {
   normalizarUser
 } from "../core/utils.js";
 
+import {
+  SUBS_OFICIAIS
+} from "../core/subs.js";
+
 const subForm = document.getElementById("subForm");
 const membersList = document.getElementById("membersList");
 const addMemberBtn = document.getElementById("addMemberBtn");
@@ -17,98 +21,10 @@ const lerFichaBtn = document.getElementById("lerFichaBtn");
 const subMessage = document.getElementById("subMessage");
 const submitBtn = subForm.querySelector('button[type="submit"]');
 
-const mapaSubs = [
-  {
-    codigo: "A-1",
-    valor: "A-1 Chama Eterna",
-    desativado: false,
-    chaves: ["chama eterna"]
-  },
-  {
-    codigo: "A-2",
-    valor: "A-2 Página Livre",
-    desativado: false,
-    chaves: ["pagina livre", "página livre"]
-  },
-  {
-    codigo: "A-3",
-    valor: "A-3 Entre Nós",
-    desativado: false,
-    chaves: ["entre nos", "entre nós"]
-  },
-  {
-    codigo: "A-4",
-    valor: "A-4 Sussurros da Aurora",
-    desativado: false,
-    chaves: ["sussurros da aurora"]
-  },
-  {
-    codigo: "A-5",
-    valor: "A-5 Crepúsculo",
-    desativado: false,
-    chaves: ["crepusculo", "crepúsculo"]
-  },
-  {
-    codigo: "A-6",
-    valor: "A-6 Trono Profano",
-    desativado: false,
-    chaves: ["trono profano"]
-  },
-  {
-    codigo: "A-7",
-    valor: "A-7 Margens de Mundos",
-    desativado: false,
-    chaves: ["margens de mundos"]
-  },
-  {
-    codigo: "A-8",
-    valor: "A-8 Ordem do Eclipse",
-    desativado: false,
-    chaves: ["ordem do eclipse"]
-  },
-  {
-    codigo: "A-9",
-    valor: "A-9 Cicatrizes Literárias",
-    desativado: false,
-    chaves: ["cicatrizes literarias", "cicatrizes literárias"]
-  },
-  {
-    codigo: "A-10",
-    valor: "A-10 Quasar",
-    desativado: false,
-    chaves: ["quasar"]
-  },
-  {
-    codigo: "A-11",
-    valor: "A-11 Sussurros Infinitos",
-    desativado: false,
-    chaves: ["sussurros infinitos"]
-  },
-  {
-    codigo: "A-12",
-    valor: "A-12 Estrela Polar",
-    desativado: false,
-    chaves: ["estrela polar"]
-  },
-  {
-    codigo: "A-13",
-    valor: "A-13 Luar Profano",
-    desativado: false,
-    chaves: ["luar profano"]
-  },
-  {
-    codigo: "A-14",
-    valor: "A-14 Fragmentos da Noite",
-    desativado: false,
-    chaves: ["fragmentos da noite"]
-  },
-  {
-    codigo: "A-15",
-    valor: "A-15 Véu Escarlate",
-    desativado: false,
-    chaves: ["veu escarlate", "véu escarlate"]
-  }
-];
+const mapaSubs = SUBS_OFICIAIS.map((sub) => ({
+  ...sub,
+  valor: sub.nome
+}));
 
 function normalizarTexto(texto) {
   return String(texto || "")

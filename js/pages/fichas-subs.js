@@ -14,6 +14,11 @@ import {
   mostrarMensagem
 } from "../core/utils.js";
 
+import {
+  SUBS_OFICIAIS,
+  obterTituloSub
+} from "../core/subs.js";
+
 protegerPagina();
 configurarBotaoLogout();
 
@@ -27,23 +32,7 @@ const totalFichasTexto = document.getElementById("totalFichasTexto");
 
 let fichasCarregadas = [];
 
-const subsOficiais = [
-  { nome: "A-1 Chama Eterna", titulo: "A-1 - Chama Eterna" },
-  { nome: "A-2 Página Livre", titulo: "A-2 - Página Livre" },
-  { nome: "A-3 Entre Nós", titulo: "A-3 - Entre Nós" },
-  { nome: "A-4 Sussurros da Aurora", titulo: "A-4 - Sussurros da Aurora" },
-  { nome: "A-5 Crepúsculo", titulo: "A-5 - Crepúsculo" },
-  { nome: "A-6 Trono Profano", titulo: "A-6 - Trono Profano" },
-  { nome: "A-7 Margens de Mundos", titulo: "A-7 - Margens de Mundos" },
-  { nome: "A-8 Ordem do Eclipse", titulo: "A-8 - Ordem do Eclipse" },
-  { nome: "A-9 Cicatrizes Literárias", titulo: "A-9 - Cicatrizes Literárias" },
-  { nome: "A-10 Quasar", titulo: "A-10 - Quasar" },
-  { nome: "A-11 Sussurros Infinitos", titulo: "A-11 - Sussurros Infinitos" },
-  { nome: "A-12 Estrela Polar", titulo: "A-12 - Estrela Polar" },
-  { nome: "A-13 Luar Profano", titulo: "A-13 - Luar Profano" },
-  { nome: "A-14 Fragmentos da Noite", titulo: "A-14 - Fragmentos da Noite" },
-  { nome: "A-15 Véu Escarlate", titulo: "A-15 - Véu Escarlate" }
-];
+const subsOficiais = SUBS_OFICIAIS;
 
 function formatarData(timestamp) {
   if (!timestamp?.seconds) {
@@ -59,12 +48,6 @@ function formatarData(timestamp) {
     hour: "2-digit",
     minute: "2-digit"
   });
-}
-
-function obterTituloSub(nomeSub) {
-  const encontrado = subsOficiais.find((sub) => sub.nome === nomeSub);
-
-  return encontrado?.titulo || nomeSub || "Sub não informado";
 }
 
 function ordenarSemanas(semanas) {

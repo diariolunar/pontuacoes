@@ -16,6 +16,10 @@ import {
   configurarMenuPorPermissao
 } from "../core/auth.js";
 
+import {
+  SUBS_OFICIAIS
+} from "../core/subs.js";
+
 protegerPagina();
 configurarBotaoLogout();
 
@@ -25,23 +29,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalSubsTexto = document.getElementById("totalSubsTexto");
 const limparSemanaSubsBtn = document.getElementById("limparSemanaSubsBtn");
 
-const subs = [
-  { nome: "A-1 Chama Eterna", titulo: "A-1 - Chama Eterna", desativado: false },
-  { nome: "A-2 Página Livre", titulo: "A-2 - Página Livre", desativado: false },
-  { nome: "A-3 Entre Nós", titulo: "A-3 - Entre Nós", desativado: false },
-  { nome: "A-4 Sussurros da Aurora", titulo: "A-4 - Sussurros da Aurora", desativado: false },
-  { nome: "A-5 Crepúsculo", titulo: "A-5 - Crepúsculo", desativado: false },
-  { nome: "A-6 Trono Profano", titulo: "A-6 - Trono Profano", desativado: false },
-  { nome: "A-7 Margens de Mundos", titulo: "A-7 - Margens de Mundos", desativado: false },
-  { nome: "A-8 Ordem do Eclipse", titulo: "A-8 - Ordem do Eclipse", desativado: false },
-  { nome: "A-9 Cicatrizes Literárias", titulo: "A-9 - Cicatrizes Literárias", desativado: false },
-  { nome: "A-10 Quasar", titulo: "A-10 - Quasar", desativado: false },
-  { nome: "A-11 Sussurros Infinitos", titulo: "A-11 - Sussurros Infinitos", desativado: false },
-  { nome: "A-12 Estrela Polar", titulo: "A-12 - Estrela Polar", desativado: false },
-  { nome: "A-13 Luar Profano", titulo: "A-13 - Luar Profano", desativado: false },
-  { nome: "A-14 Fragmentos da Noite", titulo: "A-14 - Fragmentos da Noite", desativado: false },
-  { nome: "A-15 Véu Escarlate", titulo: "A-15 - Véu Escarlate", desativado: false }
-];
+const subs = SUBS_OFICIAIS;
 
 let enviosDaSemana = [];
 
