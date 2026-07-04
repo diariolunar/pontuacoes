@@ -131,6 +131,22 @@ export const SUBS_OFICIAIS = [
     desativado: false,
     chaves: ["rose noire"],
     aliases: []
+  },
+  {
+    codigo: "A-17",
+    nome: "A-17 Lâmina Sombria",
+    titulo: "A-17 - Lâmina Sombria",
+    desativado: false,
+    chaves: ["lamina sombria", "lâmina sombria"],
+    aliases: []
+  },
+  {
+    codigo: "A-18",
+    nome: "A-18 Horizonte Astral",
+    titulo: "A-18 - Horizonte Astral",
+    desativado: false,
+    chaves: ["horizonte astral"],
+    aliases: []
   }
 ];
 
