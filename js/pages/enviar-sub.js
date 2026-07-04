@@ -52,6 +52,14 @@ function linhaTemCampo(linha, campo) {
   return regex.test(linhaNormalizada);
 }
 
+function linhaTemAlgumCampo(linha, campos) {
+  return campos.some((campo) => linhaTemCampo(linha, campo));
+}
+
+function linhaTemCampoNome(linha) {
+  return linhaTemAlgumCampo(linha, ["nome", "autor", "autora"]);
+}
+
 function linhaEhFinalDeFicha(linha) {
   const texto = normalizarTexto(linha);
 
@@ -237,7 +245,7 @@ function separarBlocosDeMembros(texto) {
       continue;
     }
 
-    const ehLinhaDeNome = linhaTemCampo(linhaOriginal, "nome");
+    const ehLinhaDeNome = linhaTemCampoNome(linhaOriginal);
 
     if (ehLinhaDeNome) {
       if (blocoAtual.length > 0) {
@@ -284,7 +292,7 @@ function extrairMembroDoBloco(bloco) {
       break;
     }
 
-    if (linhaTemCampo(linhaOriginal, "nome")) {
+    if (linhaTemCampoNome(linhaOriginal)) {
       nome = extrairValor(linhaOriginal);
       continue;
     }
@@ -361,7 +369,7 @@ lerFichaBtn.addEventListener("click", () => {
   if (membros.length === 0) {
     mostrarMensagem(
       subMessage,
-      "Não consegui encontrar membros na ficha. Confira se ela possui Nome, User e Pontos.",
+      "Não consegui encontrar membros na ficha. Confira se ela possui Nome/Autor, User e Pontos.",
       "error"
     );
 
