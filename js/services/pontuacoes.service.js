@@ -61,16 +61,11 @@ function ordenarPorTotalDesc(lista) {
   });
 }
 
-function calcularTotalGeralSeguro(totalAtual, pontosRecebidos) {
+function calcularTotalGeral(totalAtual, pontosRecebidos) {
   const atual = Number(totalAtual || 0);
   const pontos = Number(pontosRecebidos || 0);
-  const novoTotal = atual + pontos;
 
-  if (novoTotal < 0) {
-    return 0;
-  }
-
-  return novoTotal;
+  return atual + pontos;
 }
 
 async function prepararMembroNoBatch(batch, { nome, user }) {
@@ -123,14 +118,14 @@ async function somarPontuacaoGeralNoBatch(batch, {
   const pontosNumericos = Number(pontos || 0);
 
   if (!pontuacaoSnap.exists()) {
-    const totalGeralSeguro = calcularTotalGeralSeguro(0, pontosNumericos);
+    const totalGeralAtualizado = calcularTotalGeral(0, pontosNumericos);
 
     batch.set(pontuacaoRef, {
       semana,
       nome,
       user: userNormalizado,
       [campoCategoria]: pontosNumericos,
-      totalGeral: totalGeralSeguro,
+      totalGeral: totalGeralAtualizado,
       atualizadoEm: serverTimestamp()
     });
 
@@ -139,11 +134,11 @@ async function somarPontuacaoGeralNoBatch(batch, {
 
   const dadosAtuais = pontuacaoSnap.data();
   const totalAtual = Number(dadosAtuais.totalGeral || 0);
-  const totalGeralSeguro = calcularTotalGeralSeguro(totalAtual, pontosNumericos);
+  const totalGeralAtualizado = calcularTotalGeral(totalAtual, pontosNumericos);
 
   batch.update(pontuacaoRef, {
     [campoCategoria]: increment(pontosNumericos),
-    totalGeral: totalGeralSeguro,
+    totalGeral: totalGeralAtualizado,
     atualizadoEm: serverTimestamp()
   });
 }
@@ -709,7 +704,9 @@ export async function listarAjustesManuais(semana = "") {
 
 export async function listarHistoricoPorUser({
   user,
-  semana = ""
+  semana = "",
+  limite = 0,
+  incluirOcultos = true
 }) {
   const userNormalizado = normalizarUser(user);
 
@@ -729,7 +726,16 @@ export async function listarHistoricoPorUser({
     historico = historico.filter((item) => item.semana === semana);
   }
 
-  return ordenarPorCriadoEmDesc(historico);
+  if (!incluirOcultos) {
+    historico = historico.filter((item) => item.ocultoParaOutros !== true);
+  }
+
+  const historicoOrdenado = ordenarPorCriadoEmDesc(historico);
+  const limiteSeguro = Math.max(0, Math.trunc(Number(limite) || 0));
+
+  return limiteSeguro > 0
+    ? historicoOrdenado.slice(0, limiteSeguro)
+    : historicoOrdenado;
 }
 
 export async function limparPontuacoesCategoriaSemana({

@@ -21,7 +21,7 @@
 
       <p>
         Pesquise pelo seu user para consultar sua pontuação geral acumulada.
-        A busca funciona com ou sem @.
+        A busca funciona com ou sem @. Toque no user para ver suas 3 últimas movimentações.
       </p>
 
       <div class="toolbar">
@@ -51,6 +51,29 @@
   </main>
 
   <div id="footer"></div>
+
+  <dialog id="movimentacoesModal" class="movements-modal" aria-labelledby="movimentacoesTitulo">
+    <div class="movements-modal-content">
+      <div class="movements-modal-header">
+        <div>
+          <span class="tag">Histórico recente</span>
+          <h2 id="movimentacoesTitulo">Últimas movimentações</h2>
+          <p id="movimentacoesUser"></p>
+        </div>
+
+        <button
+          type="button"
+          id="fecharMovimentacoesBtn"
+          class="movements-modal-close"
+          aria-label="Fechar histórico"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div id="movimentacoesConteudo" class="movements-list" aria-live="polite"></div>
+    </div>
+  </dialog>
 
   <script type="module" src="./js/core/components.js"></script>
   <script type="module" src="./js/pages/pontuacoes.js"></script>

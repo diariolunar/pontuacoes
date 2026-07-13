@@ -1,4 +1,5 @@
 import {
+  listarHistoricoPorUser,
   listarPontuacaoGeral
 } from "../services/pontuacoes.service.js";
 
@@ -19,6 +20,10 @@ const pontuacoesLista = document.getElementById("pontuacoesLista");
 const pontuacoesMessage = document.getElementById("pontuacoesMessage");
 const modoPontuacaoTexto = document.getElementById("modoPontuacaoTexto");
 const totalUsuariosTexto = document.getElementById("totalUsuariosTexto");
+const movimentacoesModal = document.getElementById("movimentacoesModal");
+const movimentacoesUser = document.getElementById("movimentacoesUser");
+const movimentacoesConteudo = document.getElementById("movimentacoesConteudo");
+const fecharMovimentacoesBtn = document.getElementById("fecharMovimentacoesBtn");
 
 let pontuacoesCarregadas = [];
 let membrosPorIdSeguro = new Map();
@@ -36,6 +41,13 @@ const categorias = [
   { campo: "total_ajustes", nome: "Ajustes Manuais" },
   { campo: "total_lojaLunar", nome: "Loja Lunar" }
 ];
+
+const nomesCategorias = Object.fromEntries(
+  categorias.map((categoria) => [
+    categoria.campo.replace(/^total_/, ""),
+    categoria.nome
+  ])
+);
 
 function obterNumero(valor) {
   const numero = Number(valor || 0);
@@ -63,16 +75,22 @@ function formatarTotalGeral(valor) {
   return String(arredondado);
 }
 
+function formatarCategoria(categoria) {
+  return nomesCategorias[categoria] || categoria || "Sem categoria";
+}
+
+function formatarPontos(valor) {
+  const pontos = arredondarNumero(valor);
+
+  return pontos > 0 ? `+${pontos}` : String(pontos);
+}
+
 function calcularTotalPorCategorias(pontuacao) {
   const total = categorias.reduce((soma, categoria) => {
     return soma + obterNumero(pontuacao[categoria.campo]);
   }, 0);
 
   const totalArredondado = arredondarNumero(total);
-
-  if (totalArredondado < 0) {
-    return 0;
-  }
 
   return totalArredondado;
 }
@@ -158,30 +176,108 @@ function agruparPontuacoesPorUser(pontuacoes) {
       ...pontuacao,
       totalGeral: temCategoriaRegistrada
         ? totalCategorias
-        : Math.max(0, totalAntigo)
+        : totalAntigo
     };
   });
 }
 
 function criarCardPontuacao(pontuacao) {
   const totalGeral = formatarTotalGeral(pontuacao.totalGeral);
+  const saldoNegativo = obterNumero(pontuacao.totalGeral) < 0;
 
   return `
     <article class="member-admin-card member-list-card">
       <div class="member-admin-header">
         <div>
           <h2>${escaparHtml(pontuacao.nome || "Sem nome")}</h2>
-          <p>${escaparHtml(pontuacao.user || "")}</p>
+          <button
+            type="button"
+            class="user-history-trigger"
+            data-user="${escaparHtml(pontuacao.user || "")}"
+            aria-label="Ver as 3 últimas movimentações de ${escaparHtml(pontuacao.user || "")}"
+          >
+            ${escaparHtml(pontuacao.user || "")}
+          </button>
         </div>
       </div>
 
       <div class="point-card-content">
         <div class="point-card-header">
-          <strong>${escaparHtml(totalGeral)} pts</strong>
+          <strong class="${saldoNegativo ? "negative-balance" : ""}">
+            ${escaparHtml(totalGeral)} pts
+          </strong>
+          ${saldoNegativo ? '<span class="debt-label">Saldo devedor</span>' : ""}
         </div>
       </div>
     </article>
   `;
+}
+
+function renderizarMovimentacoes(registros) {
+  if (registros.length === 0) {
+    movimentacoesConteudo.innerHTML = `
+      <p class="movements-empty">Nenhuma movimentação encontrada para este user.</p>
+    `;
+    return;
+  }
+
+  movimentacoesConteudo.innerHTML = registros
+    .map((item) => {
+      const pontos = formatarPontos(item.pontos);
+      const classePontos = Number(item.pontos || 0) < 0 ? "negative" : "positive";
+
+      return `
+        <article class="movement-item">
+          <div class="movement-item-header">
+            <strong>${escaparHtml(formatarCategoria(item.categoria))}</strong>
+            <span class="movement-points ${classePontos}">${escaparHtml(pontos)} pts</span>
+          </div>
+          <p>${escaparHtml(item.semana || "Semana não informada")}</p>
+          ${item.origem ? `<small>${escaparHtml(item.origem)}</small>` : ""}
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function abrirModalMovimentacoes() {
+  if (typeof movimentacoesModal.showModal === "function") {
+    movimentacoesModal.showModal();
+    return;
+  }
+
+  movimentacoesModal.setAttribute("open", "");
+}
+
+async function carregarUltimasMovimentacoes(user) {
+  const userNormalizado = normalizarUser(user);
+
+  movimentacoesUser.textContent = userNormalizado;
+  movimentacoesConteudo.innerHTML = `
+    <p class="movements-loading">Carregando movimentações...</p>
+  `;
+  abrirModalMovimentacoes();
+
+  try {
+    const registros = await listarHistoricoPorUser({
+      user: userNormalizado,
+      limite: 3,
+      incluirOcultos: false
+    });
+
+    if (movimentacoesUser.textContent !== userNormalizado) {
+      return;
+    }
+
+    renderizarMovimentacoes(registros);
+  } catch (erro) {
+    console.error(erro);
+    movimentacoesConteudo.innerHTML = `
+      <p class="movements-empty error">
+        Não foi possível carregar as movimentações. Tente novamente.
+      </p>
+    `;
+  }
 }
 
 function ordenarPontuacoes(lista) {
@@ -228,7 +324,7 @@ function renderizarPontuacoes(
 
 function obterListaVisivelGeral() {
   return pontuacoesCarregadas.filter((pontuacao) => {
-    return obterNumero(pontuacao.totalGeral) > 0;
+    return obterNumero(pontuacao.totalGeral) !== 0;
   });
 }
 
@@ -238,7 +334,7 @@ function filtrarPontuacoes() {
   if (!termo) {
     renderizarPontuacoes(
       obterListaVisivelGeral(),
-      "Nenhum usuário com pontuação acima de 0 encontrado."
+      "Nenhum usuário com saldo diferente de 0 encontrado."
     );
 
     return;
@@ -274,7 +370,7 @@ async function carregarPontuacoes() {
 
     renderizarPontuacoes(
       obterListaVisivelGeral(),
-      "Nenhum usuário com pontuação acima de 0 encontrado."
+      "Nenhum usuário com saldo diferente de 0 encontrado."
     );
   } catch (erro) {
     console.error(erro);
@@ -296,8 +392,28 @@ limparBuscaBtn.addEventListener("click", () => {
 
   renderizarPontuacoes(
     obterListaVisivelGeral(),
-    "Nenhum usuário com pontuação acima de 0 encontrado."
+    "Nenhum usuário com saldo diferente de 0 encontrado."
   );
+});
+
+pontuacoesLista.addEventListener("click", (evento) => {
+  const botaoUser = evento.target.closest(".user-history-trigger");
+
+  if (!botaoUser) {
+    return;
+  }
+
+  carregarUltimasMovimentacoes(botaoUser.dataset.user || "");
+});
+
+fecharMovimentacoesBtn.addEventListener("click", () => {
+  movimentacoesModal.close();
+});
+
+movimentacoesModal.addEventListener("click", (evento) => {
+  if (evento.target === movimentacoesModal) {
+    movimentacoesModal.close();
+  }
 });
 
 carregarPontuacoes();
