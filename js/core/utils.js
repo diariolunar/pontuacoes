@@ -9,7 +9,8 @@ export function normalizarUser(user) {
 
   const userComArroba = userLimpo.startsWith("@") ? userLimpo : `@${userLimpo}`;
   const aliases = {
-    "@jjgreyx": "@jj_greyx"
+    "@jjgreyx": "@jj_greyx",
+    "@kazmaleão": "@kazmaleao"
   };
 
   return aliases[userComArroba] || userComArroba;
