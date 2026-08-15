@@ -375,20 +375,51 @@ export async function registrarCompraLojaLunar({
   return compras[0];
 }
 
+function juntarTextosCompra(textoAtual, novoTexto) {
+  return [textoAtual, novoTexto]
+    .map((texto) => String(texto || "").trim())
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function consolidarComprasLojaLunar(compras) {
+  const comprasPorUser = new Map();
+
+  for (const compra of compras) {
+    const user = normalizarUser(compra.user);
+    const compraExistente = comprasPorUser.get(user);
+
+    if (compraExistente) {
+      compraExistente.pontos += Math.abs(Number(compra.pontos || 0));
+      compraExistente.compra = juntarTextosCompra(compraExistente.compra, compra.compra);
+      continue;
+    }
+
+    comprasPorUser.set(user, {
+      ...compra,
+      user,
+      pontos: Math.abs(Number(compra.pontos || 0))
+    });
+  }
+
+  return Array.from(comprasPorUser.values());
+}
+
 export async function registrarComprasLojaLunar({ semana, compras }) {
   if (!Array.isArray(compras) || !compras.length) {
     throw new Error("Informe ao menos uma compra para registrar.");
   }
 
+  const comprasConsolidadas = consolidarComprasLojaLunar(compras);
   const membros = await Promise.all(
-    compras.map((compra) => buscarMembroExistente(compra.user))
+    comprasConsolidadas.map((compra) => buscarMembroExistente(compra.user))
   );
   const indiceNaoEncontrado = membros.findIndex((membro) => !membro);
 
   if (indiceNaoEncontrado !== -1) {
     const erro = new Error("Usuário não encontrado no cadastro de membros.");
     erro.code = "membro-nao-encontrado";
-    erro.user = normalizarUser(compras[indiceNaoEncontrado].user);
+    erro.user = normalizarUser(comprasConsolidadas[indiceNaoEncontrado].user);
     throw erro;
   }
 
@@ -397,7 +428,7 @@ export async function registrarComprasLojaLunar({ semana, compras }) {
   const comprasRegistradas = [];
   const pontosPorMembro = new Map();
 
-  for (const [indice, compra] of compras.entries()) {
+  for (const [indice, compra] of comprasConsolidadas.entries()) {
     const membro = membros[indice];
     const userNormalizado = normalizarUser(membro.user || compra.user);
     const pontosRemovidos = Math.abs(Number(compra.pontos || 0)) * -1;

@@ -155,6 +155,36 @@ function lerFichasLoja(texto) {
   return compras;
 }
 
+function juntarTextosCompra(textoAtual, novoTexto) {
+  return [textoAtual, novoTexto]
+    .map((texto) => String(texto || "").trim())
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function consolidarComprasPorUser(compras) {
+  const comprasPorUser = new Map();
+
+  for (const compra of compras) {
+    const user = normalizarUser(compra.user);
+    const compraExistente = comprasPorUser.get(user);
+
+    if (compraExistente) {
+      compraExistente.pontos += Number(compra.pontos || 0);
+      compraExistente.compra = juntarTextosCompra(compraExistente.compra, compra.compra);
+      continue;
+    }
+
+    comprasPorUser.set(user, {
+      ...compra,
+      user,
+      pontos: Number(compra.pontos || 0)
+    });
+  }
+
+  return Array.from(comprasPorUser.values());
+}
+
 async function validarMembroExiste(user) {
   const membro = await buscarMembroPorUser(user);
 
@@ -217,7 +247,7 @@ lerFichaBtn.addEventListener("click", async () => {
       return;
     }
 
-    comprasPreparadas = compras.map((compra, indice) => {
+    const comprasComMembros = compras.map((compra, indice) => {
       const membro = membrosEncontrados[indice];
 
       return {
@@ -227,6 +257,7 @@ lerFichaBtn.addEventListener("click", async () => {
         compra: compra.compra
       };
     });
+    comprasPreparadas = consolidarComprasPorUser(comprasComMembros);
 
     renderizarCompras(comprasPreparadas);
 

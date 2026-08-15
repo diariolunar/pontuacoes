@@ -7,11 +7,12 @@ export function normalizarUser(user) {
     return "";
   }
 
-  if (userLimpo.startsWith("@")) {
-    return userLimpo;
-  }
+  const userComArroba = userLimpo.startsWith("@") ? userLimpo : `@${userLimpo}`;
+  const aliases = {
+    "@jjgreyx": "@jj_greyx"
+  };
 
-  return `@${userLimpo}`;
+  return aliases[userComArroba] || userComArroba;
 }
 
 export function normalizarBusca(valor) {
