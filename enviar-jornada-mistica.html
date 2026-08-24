@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enviar Jornada Mística | Central Lunar</title>
+  <link rel="icon" type="image/png" href="./assets/logo-lunar.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-lunar.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+  <main class="page">
+    <section class="form-container">
+      <span class="tag">Envio de pontuação</span>
+      <h1>Enviar Pontuação da Jornada Mística</h1>
+      <p>Cole a verificação da Jornada Mística, confira os membros reconhecidos e envie a pontuação.</p>
+      <form id="categoriaForm" class="form">
+        <div class="field">
+          <label for="listaTexto">Verificação da Jornada Mística</label>
+          <textarea id="listaTexto" placeholder="📘Nome.: Nome&#10;🖋️User.: user&#10;📝Obras Lidas.: Obra&#10;🗒️Feedback.: ❌&#10;📌Resultado: Leitura Concluída Sem Erros&#10;📊Pontos.: 500"></textarea>
+        </div>
+        <button type="button" id="lerListaBtn" class="btn secondary full">Ler lista automaticamente</button>
+        <div class="members-box">
+          <div class="members-header">
+            <h2>Membros encontrados</h2>
+            <button type="button" id="addMemberBtn" class="btn secondary small">+ Adicionar membro</button>
+          </div>
+          <div id="membersList"></div>
+        </div>
+        <button type="submit" class="btn primary full">Enviar Jornada Mística</button>
+      </form>
+      <p id="categoriaMessage" class="message"></p>
+    </section>
+  </main>
+  <div id="footer"></div>
+  <script type="module" src="./js/core/components.js"></script>
+  <script type="module" src="./js/pages/enviar-jornada-mistica.js"></script>
+</body>
+</html>

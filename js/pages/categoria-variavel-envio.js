@@ -27,6 +27,7 @@ export function iniciarEnvioCategoriaVariavel({
   pontosLabel = "Pontos",
   descricaoLabel = "Motivo/atividade",
   submitText = "Enviar pontuação",
+  lerLista,
   exigirLogin = false
 }) {
   if (exigirLogin) {
@@ -301,6 +302,10 @@ export function iniciarEnvioCategoriaVariavel({
   }
 
   function lerListaCompleta(texto) {
+    if (typeof lerLista === "function") {
+      return removerDuplicadosSomando(lerLista(texto));
+    }
+
     const porBloco = lerFormatoBloco(texto);
     const porLinha = lerFormatoLinhaSimples(texto);
 
