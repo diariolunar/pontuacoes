@@ -1,5 +1,6 @@
 import {
-  listarHistoricoPorUser
+  listarHistoricoPorUser,
+  listarPontuacaoGeral
 } from "../services/pontuacoes.service.js";
 
 import {
@@ -51,23 +52,33 @@ function formatarCategoria(categoria) {
 }
 
 function formatarPontos(pontos) {
-  const numero = Number(pontos || 0);
+  const numero = arredondarNumero(pontos);
+  const texto = new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 2
+  }).format(Math.abs(numero));
 
   if (numero > 0) {
-    return `+${numero}`;
+    return `+${texto}`;
   }
 
-  return String(numero);
+  return numero < 0 ? `-${texto}` : "0";
 }
 
-function renderizarHistorico(registros) {
+function arredondarNumero(valor) {
+  return Math.round((Number(valor || 0) + Number.EPSILON) * 100) / 100;
+}
+
+function calcularPontuacaoTotal(pontuacoes, user) {
+  const userNormalizado = normalizarUser(user);
+
+  return arredondarNumero(pontuacoes
+    .filter((pontuacao) => normalizarUser(pontuacao.user || "") === userNormalizado)
+    .reduce((total, pontuacao) => total + Number(pontuacao.totalGeral || 0), 0));
+}
+
+function renderizarHistorico(registros, pontuacaoTotal) {
   totalHistoricoTexto.textContent = `Registros encontrados: ${registros.length}`;
-
-  const total = registros.reduce((soma, item) => {
-    return soma + Number(item.pontos || 0);
-  }, 0);
-
-  totalPontosTexto.textContent = `Total no histórico: ${formatarPontos(total)}`;
+  totalPontosTexto.textContent = `Pontuação total: ${formatarPontos(pontuacaoTotal)}`;
 
   if (registros.length === 0) {
     historicoTabela.innerHTML = `
@@ -120,11 +131,13 @@ async function carregarHistorico() {
   try {
     await configurarMenuPorPermissao();
 
-    const historico = await listarHistoricoPorUser({
-      user: userNormalizado
-    });
+    const [historico, pontuacoesGerais] = await Promise.all([
+      listarHistoricoPorUser({ user: userNormalizado }),
+      listarPontuacaoGeral()
+    ]);
+    const pontuacaoTotal = calcularPontuacaoTotal(pontuacoesGerais, userNormalizado);
 
-    renderizarHistorico(historico);
+    renderizarHistorico(historico, pontuacaoTotal);
 
     historicoMessage.textContent = "";
     historicoMessage.className = "message";
