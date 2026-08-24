@@ -78,7 +78,7 @@ function calcularPontuacaoTotal(pontuacoes, user) {
 
 function renderizarHistorico(registros, pontuacaoTotal) {
   totalHistoricoTexto.textContent = `Registros encontrados: ${registros.length}`;
-  totalPontosTexto.textContent = `Pontuação total: ${formatarPontos(pontuacaoTotal)}`;
+  totalPontosTexto.textContent = `Pontuação atual: ${formatarPontos(pontuacaoTotal)}`;
 
   if (registros.length === 0) {
     historicoTabela.innerHTML = `
@@ -133,7 +133,7 @@ async function carregarHistorico() {
 
     const [historico, pontuacoesGerais] = await Promise.all([
       listarHistoricoPorUser({ user: userNormalizado }),
-      listarPontuacaoGeral()
+      listarPontuacaoGeral(semanaAtual)
     ]);
     const pontuacaoTotal = calcularPontuacaoTotal(pontuacoesGerais, userNormalizado);
 
