@@ -27,6 +27,21 @@ const totalPontosTexto = document.getElementById("totalPontosTexto");
 const historicoTabela = document.getElementById("historicoTabela");
 const historicoMessage = document.getElementById("historicoMessage");
 
+const camposCategorias = [
+  "total_subs",
+  "total_leituraLunar",
+  "total_chuvaEstrelas",
+  "total_adms",
+  "total_diarioLunar",
+  "total_jornadaMistica",
+  "total_ascensao",
+  "total_redesSociais",
+  "total_divulgacoes",
+  "total_casas",
+  "total_ajustes",
+  "total_lojaLunar"
+];
+
 function obterUserDaUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("user") || "";
@@ -65,15 +80,35 @@ function formatarPontos(pontos) {
 }
 
 function arredondarNumero(valor) {
-  return Math.round((Number(valor || 0) + Number.EPSILON) * 100) / 100;
+  const numero = Number(valor || 0);
+
+  return Math.round(((Number.isNaN(numero) ? 0 : numero) + Number.EPSILON) * 100) / 100;
 }
 
 function calcularPontuacaoTotal(pontuacoes, user) {
   const userNormalizado = normalizarUser(user);
+  const pontuacoesDoMembro = pontuacoes.filter((pontuacao) => {
+    return normalizarUser(pontuacao.user || "") === userNormalizado;
+  });
+  const totaisPorCategoria = Object.fromEntries(
+    camposCategorias.map((campo) => [campo, 0])
+  );
+  let totalAntigo = 0;
 
-  return arredondarNumero(pontuacoes
-    .filter((pontuacao) => normalizarUser(pontuacao.user || "") === userNormalizado)
-    .reduce((total, pontuacao) => total + Number(pontuacao.totalGeral || 0), 0));
+  for (const pontuacao of pontuacoesDoMembro) {
+    totalAntigo += Number(pontuacao.totalGeral || 0);
+
+    for (const campo of camposCategorias) {
+      totaisPorCategoria[campo] += Number(pontuacao[campo] || 0);
+    }
+  }
+
+  const temCategorias = camposCategorias.some((campo) => totaisPorCategoria[campo] !== 0);
+  const totalCategorias = camposCategorias.reduce((total, campo) => {
+    return total + totaisPorCategoria[campo];
+  }, 0);
+
+  return arredondarNumero(temCategorias ? totalCategorias : totalAntigo);
 }
 
 function renderizarHistorico(registros, pontuacaoTotal) {
@@ -133,7 +168,7 @@ async function carregarHistorico() {
 
     const [historico, pontuacoesGerais] = await Promise.all([
       listarHistoricoPorUser({ user: userNormalizado }),
-      listarPontuacaoGeral(semanaAtual)
+      listarPontuacaoGeral()
     ]);
     const pontuacaoTotal = calcularPontuacaoTotal(pontuacoesGerais, userNormalizado);
 
