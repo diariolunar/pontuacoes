@@ -661,6 +661,51 @@ export async function listarEnviosSubs(semana = "") {
   return ordenarPorCriadoEmDesc(lista);
 }
 
+export async function listarHistoricoFichasSub(sub, limite = 10) {
+  const subNormalizado = normalizarNomeSub(sub);
+
+  if (!subNormalizado) {
+    return [];
+  }
+
+  const envios = (await listarEnviosSubs())
+    .filter((envio) => envio.sub === subNormalizado)
+    .slice(0, limite);
+
+  if (!envios.length) {
+    return [];
+  }
+
+  const idsEnvio = new Set(envios.map((envio) => envio.id));
+  const snapshot = await getDocs(collection(db, "pontuacoesSubs"));
+  const membrosPorEnvio = new Map();
+
+  for (const documento of snapshot.docs) {
+    const pontuacao = documento.data();
+
+    if (!idsEnvio.has(pontuacao.envioId)) {
+      continue;
+    }
+
+    const membros = membrosPorEnvio.get(pontuacao.envioId) || [];
+
+    membros.push({
+      id: documento.id,
+      ...pontuacao,
+      user: normalizarUser(pontuacao.user || "")
+    });
+
+    membrosPorEnvio.set(pontuacao.envioId, membros);
+  }
+
+  return envios.map((envio) => ({
+    ...envio,
+    membros: (membrosPorEnvio.get(envio.id) || []).sort((a, b) => {
+      return String(a.nome || "").localeCompare(String(b.nome || ""));
+    })
+  }));
+}
+
 export async function listarEnviosCategoria({
   colecao,
   semana = ""
