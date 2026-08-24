@@ -1,5 +1,6 @@
 import {
   limparPontuacoesSubSemana,
+  listarHistoricoFichasSub,
   listarPontuacoesSubs
 } from "../services/pontuacoes.service.js";
 
@@ -30,6 +31,7 @@ const semanaAtualTexto = document.getElementById("semanaAtualTexto");
 const totalMembrosTexto = document.getElementById("totalMembrosTexto");
 const totalPontosTexto = document.getElementById("totalPontosTexto");
 const subTabela = document.getElementById("subTabela");
+const historicoFichasBox = document.getElementById("historicoFichasBox");
 const subMessage = document.getElementById("subMessage");
 const limparSubSemanaBtn = document.getElementById("limparSubSemanaBtn");
 
@@ -102,6 +104,63 @@ function renderizarTabela(registros) {
     .join("");
 }
 
+function formatarDataEnvio(timestamp) {
+  if (!timestamp?.seconds) {
+    return "Data não registrada";
+  }
+
+  return new Date(timestamp.seconds * 1000).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function renderizarHistoricoFichas(fichas) {
+  if (!fichas.length) {
+    historicoFichasBox.innerHTML = `
+      <div class="list-item">Nenhuma ficha anterior foi enviada para este sub.</div>
+    `;
+
+    return;
+  }
+
+  historicoFichasBox.innerHTML = fichas.map((ficha) => `
+    <details class="point-details list-item" style="margin-bottom: 12px;">
+      <summary>
+        <strong>${escaparHtml(formatarDataEnvio(ficha.criadoEm))}</strong>
+        — Semana: ${escaparHtml(ficha.semana || "Não informada")}
+        (${ficha.membros.length} ${ficha.membros.length === 1 ? "membro" : "membros"})
+      </summary>
+
+      <div class="table-wrap" style="margin-top: 12px;">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nome</th>
+              <th scope="col">User</th>
+              <th scope="col">Pontos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ficha.membros.length
+              ? ficha.membros.map((membro) => `
+                <tr>
+                  <td>${escaparHtml(membro.nome || "")}</td>
+                  <td>${escaparHtml(membro.user || "")}</td>
+                  <td>${Number(membro.pontos || 0)}</td>
+                </tr>
+              `).join("")
+              : `<tr><td colspan="3">Os membros desta ficha não estão disponíveis.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  `).join("");
+}
+
 async function carregarSub() {
   const semanaAtual = gerarSemanaAtual();
 
@@ -129,9 +188,15 @@ async function carregarSub() {
   try {
     await configurarMenuPorPermissao();
 
-    registrosAtuais = await listarPontuacoesSubs(semanaAtual, subAtual);
+    const [registrosSemana, fichasHistoricas] = await Promise.all([
+      listarPontuacoesSubs(semanaAtual, subAtual),
+      listarHistoricoFichasSub(subAtual)
+    ]);
+
+    registrosAtuais = registrosSemana;
 
     renderizarTabela(registrosAtuais);
+    renderizarHistoricoFichas(fichasHistoricas);
 
     subMessage.textContent = "";
     subMessage.className = "message";

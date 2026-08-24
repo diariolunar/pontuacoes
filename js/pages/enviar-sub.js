@@ -15,6 +15,7 @@ import {
 } from "../core/subs.js";
 
 const subForm = document.getElementById("subForm");
+const campoSub = document.getElementById("subNome");
 const membersList = document.getElementById("membersList");
 const addMemberBtn = document.getElementById("addMemberBtn");
 const lerFichaBtn = document.getElementById("lerFichaBtn");
@@ -25,6 +26,18 @@ const mapaSubs = SUBS_OFICIAIS.map((sub) => ({
   ...sub,
   valor: sub.nome
 }));
+
+function preencherOpcoesSubs() {
+  campoSub.innerHTML = `
+    <option value="">Selecione o sub</option>
+    ${mapaSubs
+      .filter((sub) => !sub.desativado)
+      .map((sub) => `<option value="${escaparHtml(sub.valor)}">${escaparHtml(sub.titulo)}</option>`)
+      .join("")}
+  `;
+}
+
+preencherOpcoesSubs();
 
 function normalizarTexto(texto) {
   return String(texto || "")
@@ -153,7 +166,6 @@ function reconhecerSub(texto) {
 
 function preencherSubAutomaticamente(texto) {
   const subReconhecido = reconhecerSub(texto);
-  const campoSub = document.getElementById("subNome");
 
   if (!subReconhecido || !campoSub) {
     return null;

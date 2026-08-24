@@ -367,59 +367,120 @@ export async function registrarCompraLojaLunar({
   pontos,
   compra
 }) {
-  const membro = await buscarMembroExistente(user);
+  const compras = await registrarComprasLojaLunar({
+    semana,
+    compras: [{ nome, user, pontos, compra }]
+  });
 
-  if (!membro) {
+  return compras[0];
+}
+
+function juntarTextosCompra(textoAtual, novoTexto) {
+  return [textoAtual, novoTexto]
+    .map((texto) => String(texto || "").trim())
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function consolidarComprasLojaLunar(compras) {
+  const comprasPorUser = new Map();
+
+  for (const compra of compras) {
+    const user = normalizarUser(compra.user);
+    const compraExistente = comprasPorUser.get(user);
+
+    if (compraExistente) {
+      compraExistente.pontos += Math.abs(Number(compra.pontos || 0));
+      compraExistente.compra = juntarTextosCompra(compraExistente.compra, compra.compra);
+      continue;
+    }
+
+    comprasPorUser.set(user, {
+      ...compra,
+      user,
+      pontos: Math.abs(Number(compra.pontos || 0))
+    });
+  }
+
+  return Array.from(comprasPorUser.values());
+}
+
+export async function registrarComprasLojaLunar({ semana, compras }) {
+  if (!Array.isArray(compras) || !compras.length) {
+    throw new Error("Informe ao menos uma compra para registrar.");
+  }
+
+  const comprasConsolidadas = consolidarComprasLojaLunar(compras);
+  const membros = await Promise.all(
+    comprasConsolidadas.map((compra) => buscarMembroExistente(compra.user))
+  );
+  const indiceNaoEncontrado = membros.findIndex((membro) => !membro);
+
+  if (indiceNaoEncontrado !== -1) {
     const erro = new Error("Usuário não encontrado no cadastro de membros.");
     erro.code = "membro-nao-encontrado";
-    erro.user = normalizarUser(user);
+    erro.user = normalizarUser(comprasConsolidadas[indiceNaoEncontrado].user);
     throw erro;
   }
 
   const batch = writeBatch(db);
   const metadadosCriador = obterMetadadosCriador();
+  const comprasRegistradas = [];
+  const pontosPorMembro = new Map();
 
-  const userNormalizado = normalizarUser(membro.user || user);
-  const pontosRemovidos = Math.abs(Number(pontos || 0)) * -1;
-  const compraTexto = compra || "";
+  for (const [indice, compra] of comprasConsolidadas.entries()) {
+    const membro = membros[indice];
+    const userNormalizado = normalizarUser(membro.user || compra.user);
+    const pontosRemovidos = Math.abs(Number(compra.pontos || 0)) * -1;
+    const compraTexto = compra.compra || "";
+    const nomeMembro = membro.nome || compra.nome;
+    const registroRef = doc(collection(db, "lojaLunar"));
 
-  const registroRef = doc(collection(db, "lojaLunar"));
+    batch.set(registroRef, {
+      semana,
+      nome: nomeMembro,
+      user: userNormalizado,
+      pontos: pontosRemovidos,
+      compra: compraTexto,
+      criadoEm: serverTimestamp(),
+      ...metadadosCriador
+    });
 
-  batch.set(registroRef, {
-    semana,
-    nome: membro.nome || nome,
-    user: userNormalizado,
-    pontos: pontosRemovidos,
-    compra: compraTexto,
-    criadoEm: serverTimestamp(),
-    ...metadadosCriador
-  });
+    adicionarHistoricoNoBatch(batch, {
+      semana,
+      nome: nomeMembro,
+      user: userNormalizado,
+      categoria: "lojaLunar",
+      pontos: pontosRemovidos,
+      origem: compraTexto ? `Loja Lunar: ${compraTexto}` : "Loja Lunar"
+    });
 
-  await somarPontuacaoGeralNoBatch(batch, {
-    semana,
-    nome: membro.nome || nome,
-    user: userNormalizado,
-    categoria: "lojaLunar",
-    pontos: pontosRemovidos
-  });
+    const chaveMembro = userNormalizado;
+    const atual = pontosPorMembro.get(chaveMembro) || { nome: nomeMembro, pontos: 0 };
+    atual.pontos += pontosRemovidos;
+    pontosPorMembro.set(chaveMembro, atual);
 
-  adicionarHistoricoNoBatch(batch, {
-    semana,
-    nome: membro.nome || nome,
-    user: userNormalizado,
-    categoria: "lojaLunar",
-    pontos: pontosRemovidos,
-    origem: compraTexto ? `Loja Lunar: ${compraTexto}` : "Loja Lunar"
-  });
+    comprasRegistradas.push({
+      nome: nomeMembro,
+      user: userNormalizado,
+      pontos: pontosRemovidos,
+      compra: compraTexto
+    });
+  }
+
+  for (const [user, dados] of pontosPorMembro) {
+    await somarPontuacaoGeralNoBatch(batch, {
+      semana,
+      nome: dados.nome,
+      user,
+      categoria: "lojaLunar",
+      pontos: dados.pontos
+    });
+  }
 
   await batch.commit();
 
-  return {
-    nome: membro.nome || nome,
-    user: userNormalizado,
-    pontos: pontosRemovidos,
-    compra: compraTexto
-  };
+  return comprasRegistradas;
 }
 
 export async function registrarLeituraLunar({
@@ -598,6 +659,51 @@ export async function listarEnviosSubs(semana = "") {
   }));
 
   return ordenarPorCriadoEmDesc(lista);
+}
+
+export async function listarHistoricoFichasSub(sub, limite = 10) {
+  const subNormalizado = normalizarNomeSub(sub);
+
+  if (!subNormalizado) {
+    return [];
+  }
+
+  const envios = (await listarEnviosSubs())
+    .filter((envio) => envio.sub === subNormalizado)
+    .slice(0, limite);
+
+  if (!envios.length) {
+    return [];
+  }
+
+  const idsEnvio = new Set(envios.map((envio) => envio.id));
+  const snapshot = await getDocs(collection(db, "pontuacoesSubs"));
+  const membrosPorEnvio = new Map();
+
+  for (const documento of snapshot.docs) {
+    const pontuacao = documento.data();
+
+    if (!idsEnvio.has(pontuacao.envioId)) {
+      continue;
+    }
+
+    const membros = membrosPorEnvio.get(pontuacao.envioId) || [];
+
+    membros.push({
+      id: documento.id,
+      ...pontuacao,
+      user: normalizarUser(pontuacao.user || "")
+    });
+
+    membrosPorEnvio.set(pontuacao.envioId, membros);
+  }
+
+  return envios.map((envio) => ({
+    ...envio,
+    membros: (membrosPorEnvio.get(envio.id) || []).sort((a, b) => {
+      return String(a.nome || "").localeCompare(String(b.nome || ""));
+    })
+  }));
 }
 
 export async function listarEnviosCategoria({

@@ -147,6 +147,14 @@ export const SUBS_OFICIAIS = [
     desativado: false,
     chaves: ["horizonte astral"],
     aliases: []
+  },
+  {
+    codigo: "A-19",
+    nome: "A-19 Luar Sereno",
+    titulo: "A-19 - Luar Sereno",
+    desativado: false,
+    chaves: ["luar sereno"],
+    aliases: []
   }
 ];
 

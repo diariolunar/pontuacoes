@@ -28,6 +28,8 @@ const colecoesComUser = [
   "chuvaEstrelas",
   "pontuacaoAdms",
   "diarioLunar",
+  "jornadaMistica",
+  "envios_jornadaMistica",
   "ascensao",
   "redesSociais",
   "divulgacoes",

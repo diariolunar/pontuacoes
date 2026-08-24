@@ -34,6 +34,7 @@ const categorias = [
   { campo: "total_chuvaEstrelas", nome: "Chuva de Estrelas" },
   { campo: "total_adms", nome: "Pontuação dos ADMs" },
   { campo: "total_diarioLunar", nome: "Diário Lunar" },
+  { campo: "total_jornadaMistica", nome: "Jornada Mística" },
   { campo: "total_ascensao", nome: "Ascensão" },
   { campo: "total_redesSociais", nome: "Redes Sociais" },
   { campo: "total_divulgacoes", nome: "Divulgações" },

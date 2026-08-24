@@ -3,7 +3,7 @@ import {
 } from "../services/membros.service.js";
 
 import {
-  registrarCompraLojaLunar
+  registrarComprasLojaLunar
 } from "../services/pontuacoes.service.js";
 
 import {
@@ -26,7 +26,7 @@ const erroModal = document.getElementById("erroModal");
 const erroModalTexto = document.getElementById("erroModalTexto");
 const fecharModalBtn = document.getElementById("fecharModalBtn");
 
-let compraPreparada = null;
+let comprasPreparadas = [];
 
 function normalizarTexto(texto) {
   return String(texto || "")
@@ -72,7 +72,7 @@ function fecharModalErro() {
 }
 
 function limparCompraPreparada() {
-  compraPreparada = null;
+  comprasPreparadas = [];
 
   compraBox.innerHTML = `
     <div class="list-item">
@@ -81,8 +81,8 @@ function limparCompraPreparada() {
   `;
 }
 
-function renderizarCompra(compra) {
-  compraBox.innerHTML = `
+function renderizarCompras(compras) {
+  compraBox.innerHTML = compras.map((compra) => `
     <article class="member-admin-card member-list-card">
       <div class="member-admin-header">
         <div>
@@ -101,47 +101,88 @@ function renderizarCompra(compra) {
         </div>
       </div>
     </article>
-  `;
+  `).join("");
 }
 
-function lerFichaLoja(texto) {
+function criarCompraVazia() {
+  return {
+    nome: "",
+    user: "",
+    pontos: 0,
+    compra: ""
+  };
+}
+
+function lerFichasLoja(texto) {
   const linhas = String(texto || "")
     .split(/\r?\n/)
     .map((linha) => linha.trim())
     .filter(Boolean);
 
-  let nome = "";
-  let user = "";
-  let pontos = 0;
-  let compra = "";
+  const compras = [];
+  let compraAtual = criarCompraVazia();
 
   for (const linha of linhas) {
     if (linhaTemCampo(linha, "nome")) {
-      nome = extrairValor(linha);
+      if (compraAtual.nome || compraAtual.user || compraAtual.pontos || compraAtual.compra) {
+        compras.push(compraAtual);
+        compraAtual = criarCompraVazia();
+      }
+
+      compraAtual.nome = extrairValor(linha);
       continue;
     }
 
     if (linhaTemCampo(linha, "user")) {
-      user = normalizarUser(extrairValor(linha));
+      compraAtual.user = normalizarUser(extrairValor(linha));
       continue;
     }
 
     if (linhaTemCampo(linha, "pontos")) {
-      pontos = Math.abs(converterPontuacao(extrairValor(linha)));
+      compraAtual.pontos = Math.abs(converterPontuacao(extrairValor(linha)));
       continue;
     }
 
-    if (linhaTemCampo(linha, "compra")) {
-      compra = extrairValor(linha);
+    if (linhaTemCampo(linha, "compra") || linhaTemCampo(linha, "motivo")) {
+      compraAtual.compra = extrairValor(linha);
     }
   }
 
-  return {
-    nome,
-    user,
-    pontos,
-    compra
-  };
+  if (compraAtual.nome || compraAtual.user || compraAtual.pontos || compraAtual.compra) {
+    compras.push(compraAtual);
+  }
+
+  return compras;
+}
+
+function juntarTextosCompra(textoAtual, novoTexto) {
+  return [textoAtual, novoTexto]
+    .map((texto) => String(texto || "").trim())
+    .filter(Boolean)
+    .join(" | ");
+}
+
+function consolidarComprasPorUser(compras) {
+  const comprasPorUser = new Map();
+
+  for (const compra of compras) {
+    const user = normalizarUser(compra.user);
+    const compraExistente = comprasPorUser.get(user);
+
+    if (compraExistente) {
+      compraExistente.pontos += Number(compra.pontos || 0);
+      compraExistente.compra = juntarTextosCompra(compraExistente.compra, compra.compra);
+      continue;
+    }
+
+    comprasPorUser.set(user, {
+      ...compra,
+      user,
+      pontos: Number(compra.pontos || 0)
+    });
+  }
+
+  return Array.from(comprasPorUser.values());
 }
 
 async function validarMembroExiste(user) {
@@ -165,14 +206,15 @@ lerFichaBtn.addEventListener("click", async () => {
     return;
   }
 
-  const compra = lerFichaLoja(texto);
+  const compras = lerFichasLoja(texto);
+  const fichaInvalida = compras.find((compra) => !compra.nome || !compra.user || compra.pontos <= 0);
 
-  if (!compra.nome || !compra.user || compra.pontos <= 0) {
+  if (!compras.length || fichaInvalida) {
     limparCompraPreparada();
 
     mostrarMensagem(
       lojaMessage,
-      "Não consegui ler a ficha. Confira se ela possui Nome, User e Pontos.",
+      "Não consegui ler uma das fichas. Confira se todas possuem Nome, User e Pontos.",
       "error"
     );
 
@@ -183,9 +225,13 @@ lerFichaBtn.addEventListener("click", async () => {
     lerFichaBtn.disabled = true;
     lerFichaBtn.textContent = "Verificando membro...";
 
-    const membroEncontrado = await validarMembroExiste(compra.user);
+    const membrosEncontrados = await Promise.all(
+      compras.map((compra) => validarMembroExiste(compra.user))
+    );
+    const indiceNaoEncontrado = membrosEncontrados.findIndex((membro) => !membro);
 
-    if (!membroEncontrado) {
+    if (indiceNaoEncontrado !== -1) {
+      const compra = compras[indiceNaoEncontrado];
       limparCompraPreparada();
 
       abrirModalErro(
@@ -201,18 +247,23 @@ lerFichaBtn.addEventListener("click", async () => {
       return;
     }
 
-    compraPreparada = {
-      nome: membroEncontrado.nome || compra.nome,
-      user: membroEncontrado.user || compra.user,
-      pontos: compra.pontos,
-      compra: compra.compra
-    };
+    const comprasComMembros = compras.map((compra, indice) => {
+      const membro = membrosEncontrados[indice];
 
-    renderizarCompra(compraPreparada);
+      return {
+        nome: membro.nome || compra.nome,
+        user: membro.user || compra.user,
+        pontos: compra.pontos,
+        compra: compra.compra
+      };
+    });
+    comprasPreparadas = consolidarComprasPorUser(comprasComMembros);
+
+    renderizarCompras(comprasPreparadas);
 
     mostrarMensagem(
       lojaMessage,
-      "Compra lida com sucesso. Confira os dados antes de registrar.",
+      `${comprasPreparadas.length} ${comprasPreparadas.length === 1 ? "compra lida" : "compras lidas"} com sucesso. Confira os dados antes de registrar.`,
       "success"
     );
   } catch (erro) {
@@ -234,24 +285,24 @@ lerFichaBtn.addEventListener("click", async () => {
 lojaForm.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
-  if (!compraPreparada) {
+  if (!comprasPreparadas.length) {
     mostrarMensagem(
       lojaMessage,
-      "Leia e valide uma ficha antes de registrar a compra.",
+      "Leia e valide ao menos uma ficha antes de registrar as compras.",
       "error"
     );
 
     return;
   }
 
-  const quantidadePontos = Number(compraPreparada.pontos || 0);
+  const quantidadePontos = comprasPreparadas.reduce((total, compra) => total + Number(compra.pontos || 0), 0);
   const pontosTexto = `${quantidadePontos} ${quantidadePontos === 1 ? "ponto" : "pontos"}`;
 
   const confirmar = await confirmarModal({
-    titulo: "Confirmar compra",
-    texto: `Confirmar compra de ${compraPreparada.nome} (${compraPreparada.user})?\n\nSerão removidos ${pontosTexto}.`,
+    titulo: "Confirmar compras",
+    texto: `Confirmar o registro de ${comprasPreparadas.length} ${comprasPreparadas.length === 1 ? "compra" : "compras"}?\n\nSerão removidos ${pontosTexto}.`,
     tipo: "warning",
-    textoConfirmar: "Registrar compra",
+    textoConfirmar: "Registrar compras",
     textoCancelar: "Cancelar"
   });
 
@@ -263,17 +314,14 @@ lojaForm.addEventListener("submit", async (evento) => {
     submitBtn.disabled = true;
     submitBtn.textContent = "Registrando...";
 
-    await registrarCompraLojaLunar({
+    await registrarComprasLojaLunar({
       semana: gerarSemanaAtual(),
-      nome: compraPreparada.nome,
-      user: compraPreparada.user,
-      pontos: compraPreparada.pontos,
-      compra: compraPreparada.compra
+      compras: comprasPreparadas
     });
 
     mostrarMensagem(
       lojaMessage,
-      "Compra registrada com sucesso. Os pontos foram removidos da Pontuação Geral.",
+      `${comprasPreparadas.length} ${comprasPreparadas.length === 1 ? "compra registrada" : "compras registradas"} com sucesso. Os pontos foram removidos da Pontuação Geral.`,
       "success"
     );
 
@@ -295,7 +343,7 @@ lojaForm.addEventListener("submit", async (evento) => {
     );
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Registrar compra";
+    submitBtn.textContent = "Registrar compras";
   }
 });
 

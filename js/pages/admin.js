@@ -55,6 +55,10 @@ const categoriasEnvio = [
     nome: "Diário Lunar"
   },
   {
+    colecao: "jornadaMistica",
+    nome: "Jornada Mística"
+  },
+  {
     colecao: "ascensao",
     nome: "Ascensão"
   },

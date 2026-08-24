@@ -72,6 +72,7 @@ function formatarCategoria(categoria) {
     chuvaEstrelas: "Chuva de Estrelas",
     adms: "Pontuação dos ADMs",
     diarioLunar: "Diário Lunar",
+    jornadaMistica: "Jornada Mística",
     ascensao: "Ascensão",
     redesSociais: "Redes Sociais",
     divulgacoes: "Divulgações",
