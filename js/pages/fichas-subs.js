@@ -34,6 +34,14 @@ let fichasCarregadas = [];
 
 const subsOficiais = SUBS_OFICIAIS;
 
+filtroSub.innerHTML = `
+  <option value="">Todos os subs</option>
+  ${subsOficiais
+    .filter((sub) => !sub.desativado)
+    .map((sub) => `<option value="${escaparHtml(sub.nome)}">${escaparHtml(sub.titulo)}</option>`)
+    .join("")}
+`;
+
 function formatarData(timestamp) {
   if (!timestamp?.seconds) {
     return "Data não registrada";

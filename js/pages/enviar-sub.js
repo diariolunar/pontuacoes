@@ -93,6 +93,10 @@ function linhaEhFinalDeFicha(linha) {
 }
 
 function criarRegexCodigoSub(codigo) {
+  if (!/^A-\d+$/i.test(codigo)) {
+    return null;
+  }
+
   const numero = codigo.toUpperCase().replace("A-", "");
 
   return new RegExp(`(^|[^a-zA-Z0-9])a\\s*-?\\s*${numero}([^0-9]|$)`, "i");
@@ -144,7 +148,7 @@ function reconhecerSubPorCodigo(texto) {
   for (const sub of subsOrdenados) {
     const regex = criarRegexCodigoSub(sub.codigo);
 
-    if (regex.test(trechoInicial)) {
+    if (regex?.test(trechoInicial)) {
       return sub;
     }
   }
@@ -152,7 +156,7 @@ function reconhecerSubPorCodigo(texto) {
   for (const sub of subsOrdenados) {
     const regex = criarRegexCodigoSub(sub.codigo);
 
-    if (regex.test(textoNormalizado)) {
+    if (regex?.test(textoNormalizado)) {
       return sub;
     }
   }

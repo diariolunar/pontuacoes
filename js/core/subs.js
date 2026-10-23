@@ -9,11 +9,11 @@ export const SUBS_OFICIAIS = [
   },
   {
     codigo: "A-2",
-    nome: "A-2 Página Livre",
-    titulo: "A-2 - Página Livre",
+    nome: "A-2 Entre Reinos",
+    titulo: "A-2 - Entre Reinos",
     desativado: false,
-    chaves: ["pagina livre", "página livre"],
-    aliases: []
+    chaves: ["entre reinos", "pagina livre", "página livre"],
+    aliases: ["A-2 Página Livre"]
   },
   {
     codigo: "A-3",
@@ -113,16 +113,18 @@ export const SUBS_OFICIAIS = [
   },
   {
     codigo: "A-15",
-    nome: "A-15 Santuário Lunar",
-    titulo: "A-15 - Santuário Lunar",
+    nome: "A-15 Pétalas ao Vento",
+    titulo: "A-15 - Pétalas ao Vento",
     desativado: false,
     chaves: [
+      "petalas ao vento",
+      "pétalas ao vento",
       "santuario lunar",
       "santuário lunar",
       "veu escarlate",
       "véu escarlate"
     ],
-    aliases: ["A-15 Véu Escarlate"]
+    aliases: ["A-15 Santuário Lunar", "A-15 Véu Escarlate"]
   },
   {
     codigo: "A-16",
@@ -154,6 +156,14 @@ export const SUBS_OFICIAIS = [
     titulo: "A-19 - Luar Sereno",
     desativado: false,
     chaves: ["luar sereno"],
+    aliases: []
+  },
+  {
+    codigo: "ESPECIAL",
+    nome: "Especial Portal Lunar",
+    titulo: "Especial - Portal Lunar",
+    desativado: false,
+    chaves: ["portal lunar"],
     aliases: []
   }
 ];
